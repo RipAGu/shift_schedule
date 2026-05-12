@@ -13,6 +13,7 @@ class CalendarCell extends StatelessWidget {
     this.isOutside = false,
     this.emoji,
     this.memo,
+    this.holiday,
     this.overridden = false,
   });
 
@@ -23,25 +24,31 @@ class CalendarCell extends StatelessWidget {
   final bool isOutside;
   final String? emoji;
   final String? memo;
+  final String? holiday;
   final bool overridden;
 
   @override
   Widget build(BuildContext context) {
     final dim = isOutside ? 0.35 : 1.0;
+    final hasHoliday = holiday != null && !isOutside;
     final dayColor = isToday
         ? Colors.white
-        : day.weekday == DateTime.sunday
+        : hasHoliday
             ? AppColors.red
-            : day.weekday == DateTime.saturday
-                ? AppColors.blue
-                : AppColors.text1;
+            : day.weekday == DateTime.sunday
+                ? AppColors.red
+                : day.weekday == DateTime.saturday
+                    ? AppColors.blue
+                    : AppColors.text1;
 
     final dayText = Text(
       '${day.day}',
       style: TextStyle(
         fontFamily: 'Pretendard',
         fontSize: 14,
-        fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+        fontWeight: (isToday || hasHoliday)
+            ? FontWeight.w800
+            : FontWeight.w600,
         letterSpacing: -0.3,
         color: dayColor,
         fontFeatures: tabularNumbers,
@@ -105,7 +112,28 @@ class CalendarCell extends StatelessWidget {
                   ),
                 ),
               if (!isOutside) ...[
-                const SizedBox(height: 3),
+                const SizedBox(height: 2),
+                SizedBox(
+                  width: double.infinity,
+                  height: 12,
+                  child: hasHoliday
+                      ? Text(
+                          holiday!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: 'Pretendard',
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
+                            color: AppColors.red,
+                            height: 1.1,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 2),
                 SizedBox(
                   width: double.infinity,
                   height: 24,

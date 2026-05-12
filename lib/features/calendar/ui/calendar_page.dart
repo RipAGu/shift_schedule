@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../app/tokens.dart';
 import '../../../core/date_key.dart';
 import '../../../core/shift.dart';
+import '../../holidays/data/holiday_repository.dart';
 import '../domain/shift_calculator.dart';
 import '../view_model/calendar_state.dart';
 import '../view_model/calendar_view_model.dart';
@@ -28,6 +29,13 @@ class CalendarPage extends ConsumerWidget {
       anchorDate: state.anchorDate,
       overrides: state.overrides,
     );
+
+    final year = state.focusedMonth.year;
+    final holidays = <String, String>{
+      ...ref.watch(yearHolidaysProvider(year - 1)).value ?? const {},
+      ...ref.watch(yearHolidaysProvider(year)).value ?? const {},
+      ...ref.watch(yearHolidaysProvider(year + 1)).value ?? const {},
+    };
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -80,13 +88,13 @@ class CalendarPage extends ConsumerWidget {
                     calendarBuilders: CalendarBuilders(
                       dowBuilder: (context, day) => _DowLabel(day: day),
                       defaultBuilder: (ctx, day, _) =>
-                          _buildCell(state, day, isOutside: false),
+                          _buildCell(state, holidays, day, isOutside: false),
                       todayBuilder: (ctx, day, _) =>
-                          _buildCell(state, day, isToday: true),
+                          _buildCell(state, holidays, day, isToday: true),
                       outsideBuilder: (ctx, day, _) =>
-                          _buildCell(state, day, isOutside: true),
+                          _buildCell(state, holidays, day, isOutside: true),
                       selectedBuilder: (ctx, day, _) =>
-                          _buildCell(state, day, isSelected: true),
+                          _buildCell(state, holidays, day, isSelected: true),
                     ),
                   ),
                 );
@@ -101,6 +109,7 @@ class CalendarPage extends ConsumerWidget {
 
   Widget _buildCell(
     CalendarState state,
+    Map<String, String> holidays,
     DateTime day, {
     bool isToday = false,
     bool isOutside = false,
@@ -122,6 +131,7 @@ class CalendarPage extends ConsumerWidget {
       isSelected: isSelected,
       emoji: note?.emoji,
       memo: note?.memo,
+      holiday: holidays[key],
       overridden: state.overrides.containsKey(key),
     );
   }

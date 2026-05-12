@@ -4,15 +4,18 @@
 
 import 'package:hive_ce/hive.dart';
 import 'package:sample/features/calendar/domain/note.dart';
+import 'package:sample/features/holidays/domain/year_holidays.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(NoteAdapter());
+    registerAdapter(YearHolidaysCacheAdapter());
   }
 }
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(NoteAdapter());
+    registerAdapter(YearHolidaysCacheAdapter());
   }
 }

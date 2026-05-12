@@ -5,15 +5,19 @@ import 'app/router.dart';
 import 'app/theme.dart';
 import 'features/calendar/data/calendar_repository.dart';
 import 'features/calendar/data/calendar_storage.dart';
+import 'features/holidays/data/holiday_repository.dart';
+import 'features/holidays/data/holiday_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final storage = await CalendarStorage.open();
+  final calendarStorage = await CalendarStorage.open();
+  final holidayStorage = await HolidayStorage.open();
 
   runApp(
     ProviderScope(
       overrides: [
-        calendarStorageProvider.overrideWithValue(storage),
+        calendarStorageProvider.overrideWithValue(calendarStorage),
+        holidayStorageProvider.overrideWithValue(holidayStorage),
       ],
       child: const MyApp(),
     ),
