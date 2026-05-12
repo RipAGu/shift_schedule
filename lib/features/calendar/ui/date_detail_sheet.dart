@@ -89,11 +89,27 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
 
   void _closePicker() => setState(() => _pickerOpen = false);
 
-  void _applyPicker() {
+  Future<void> _applyPicker() async {
+    final picked = _pickerSelection;
     setState(() {
-      _appliedShift = _pickerSelection;
+      _appliedShift = picked;
       _pickerOpen = false;
     });
+    await ref.read(calendarViewModelProvider.notifier).saveShiftOverride(
+          day: widget.day,
+          shift: picked,
+        );
+  }
+
+  Future<void> _resetToPattern() async {
+    setState(() {
+      _appliedShift = _patternShift;
+      _pickerSelection = _patternShift;
+    });
+    await ref.read(calendarViewModelProvider.notifier).saveShiftOverride(
+          day: widget.day,
+          shift: _patternShift,
+        );
   }
 
   @override
@@ -131,7 +147,7 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
                 onClosePicker: _closePicker,
                 onPick: (s) => setState(() => _pickerSelection = s),
                 onApply: _applyPicker,
-                onResetToPattern: () => setState(() => _appliedShift = _patternShift),
+                onResetToPattern: _resetToPattern,
               ),
               const SizedBox(height: 18),
               _SectionLabel('스티커'),
@@ -526,14 +542,17 @@ class _PickerCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  shift.name,
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: selected ? Colors.white : AppColors.text1,
-                    letterSpacing: -0.3,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    shift.name,
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? Colors.white : AppColors.text1,
+                      letterSpacing: -0.3,
+                    ),
                   ),
                 ),
               ],

@@ -33,13 +33,21 @@ enum ShiftKind {
     solid: Color(0xFFF77F36),
     soft: Color(0xFFFEEEDF),
   ),
-  duty(
-    code: 'DU',
-    short: '당',
-    name: '당직',
+  vacation(
+    code: 'V',
+    short: '연',
+    name: '연차',
     time: '종일',
-    solid: Color(0xFFF04452),
-    soft: Color(0xFFFCE4E6),
+    solid: Color(0xFF1FAD6A),
+    soft: Color(0xFFDFF2E6),
+  ),
+  compOff(
+    code: 'C',
+    short: '대',
+    name: '대체휴무',
+    time: '—',
+    solid: Color(0xFF14B5C6),
+    soft: Color(0xFFD6F0F4),
   );
 
   const ShiftKind({

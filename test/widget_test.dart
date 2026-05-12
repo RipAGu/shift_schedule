@@ -85,10 +85,10 @@ void main() {
         month: 5,
         cycle: cycle,
         anchorDate: anchor,
-        overrides: {toDateKey(DateTime(2026, 5, 1)): ShiftKind.duty},
+        overrides: {toDateKey(DateTime(2026, 5, 1)): ShiftKind.vacation},
       );
 
-      expect(stats[ShiftKind.duty], 1);
+      expect(stats[ShiftKind.vacation], 1);
     });
   });
 
