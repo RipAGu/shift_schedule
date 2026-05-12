@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../features/calendar/view_model/calendar_state.dart';
+import '../features/calendar/view_model/calendar_view_model.dart';
 import '../features/onboarding/ui/onboarding_screen.dart';
 import '../features/onboarding/view_model/onboarding_controller.dart';
+import '../features/widget/widget_sync_service.dart';
 import 'home_shell.dart';
 
 part 'router.g.dart';
@@ -22,12 +25,35 @@ GoRouter goRouter(Ref ref) {
   );
 }
 
-class _RootGate extends ConsumerWidget {
+class _RootGate extends ConsumerStatefulWidget {
   const _RootGate();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_RootGate> createState() => _RootGateState();
+}
+
+class _RootGateState extends ConsumerState<_RootGate> {
+  @override
+  void initState() {
+    super.initState();
+    // 첫 빌드 후 한 번 동기화
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = ref.read(calendarViewModelProvider);
+      widgetSyncService.sync(state);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final completed = ref.watch(onboardingControllerProvider);
+
+    // 이후 상태 변화 시 자동 동기화
+    ref.listen<CalendarState>(
+      calendarViewModelProvider,
+      (prev, next) => widgetSyncService.sync(next),
+    );
+
     return completed ? const HomeShell() : const OnboardingScreen();
   }
 }

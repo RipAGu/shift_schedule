@@ -54,6 +54,9 @@ dependencies:
   hive_ce: ^2.7.0
   hive_ce_flutter: ^2.0.0
 
+  # Home screen widget (iOS WidgetKit / Android AppWidgets bridge)
+  home_widget: ^0.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
