@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../features/calendar/ui/app_tab_bar.dart';
 import '../features/calendar/ui/calendar_page.dart';
 import '../features/pattern/ui/pattern_page.dart';
+import '../features/stats/ui/stats_page.dart';
 import 'tokens.dart';
 
 class HomeShell extends StatefulWidget {
@@ -29,7 +30,7 @@ class _HomeShellState extends State<HomeShell> {
           children: const [
             CalendarPage(),
             PatternPage(),
-            _PlaceholderTab(title: '통계'),
+            StatsPage(),
             _PlaceholderTab(title: '설정'),
           ],
         ),
