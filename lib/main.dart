@@ -7,17 +7,21 @@ import 'features/calendar/data/calendar_repository.dart';
 import 'features/calendar/data/calendar_storage.dart';
 import 'features/holidays/data/holiday_repository.dart';
 import 'features/holidays/data/holiday_storage.dart';
+import 'features/onboarding/data/onboarding_storage.dart';
+import 'features/onboarding/view_model/onboarding_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final calendarStorage = await CalendarStorage.open();
   final holidayStorage = await HolidayStorage.open();
+  final onboardingStorage = await OnboardingStorage.open();
 
   runApp(
     ProviderScope(
       overrides: [
         calendarStorageProvider.overrideWithValue(calendarStorage),
         holidayStorageProvider.overrideWithValue(holidayStorage),
+        onboardingStorageProvider.overrideWithValue(onboardingStorage),
       ],
       child: const MyApp(),
     ),
