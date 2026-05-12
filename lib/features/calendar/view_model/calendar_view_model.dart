@@ -47,6 +47,13 @@ class CalendarViewModel extends _$CalendarViewModel {
     state = state.copyWith(cycle: List.unmodifiable(cycle));
   }
 
+  Future<void> saveAnchorDate(DateTime date) async {
+    final normalized = DateTime(date.year, date.month, date.day);
+    final repo = ref.read(calendarRepositoryProvider);
+    await repo.putAnchorDate(normalized);
+    state = state.copyWith(anchorDate: normalized);
+  }
+
   Future<void> saveShiftOverride({
     required DateTime day,
     required ShiftKind shift,

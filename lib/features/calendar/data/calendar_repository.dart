@@ -34,4 +34,5 @@ class CalendarRepository {
       _storage.overrides.put(key, shift.name);
   Future<void> deleteOverride(DateKey key) => _storage.overrides.delete(key);
   Future<void> putCycle(List<ShiftKind> cycle) => _storage.writeCycle(cycle);
+  Future<void> putAnchorDate(DateTime date) => _storage.writeAnchorDate(date);
 }

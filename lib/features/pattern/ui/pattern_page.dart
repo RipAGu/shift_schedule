@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
 import '../../calendar/view_model/calendar_view_model.dart';
+import 'start_date_picker.dart';
 
 class PatternPage extends ConsumerStatefulWidget {
   const PatternPage({super.key});
@@ -41,6 +42,17 @@ class _PatternPageState extends ConsumerState<PatternPage> {
     setState(() => _draft.removeAt(i));
   }
 
+  Future<void> _editStartDate() async {
+    final s = ref.read(calendarViewModelProvider);
+    final picked = await showStartDatePicker(
+      context,
+      initial: s.anchorDate,
+      cycle: _draft,
+    );
+    if (!mounted || picked == null) return;
+    await ref.read(calendarViewModelProvider.notifier).saveAnchorDate(picked);
+  }
+
   Future<void> _apply() async {
     await ref.read(calendarViewModelProvider.notifier).savePattern(_draft);
     if (!mounted) return;
@@ -76,6 +88,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
                 footer: _Footer(
                   cycleLength: _draft.length,
                   anchorDate: anchorDate,
+                  onEditStart: _editStartDate,
                 ),
                 onReorder: _onReorder,
                 proxyDecorator: (child, index, animation) {
@@ -153,10 +166,15 @@ class _Heading extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
-  const _Footer({required this.cycleLength, required this.anchorDate});
+  const _Footer({
+    required this.cycleLength,
+    required this.anchorDate,
+    required this.onEditStart,
+  });
 
   final int cycleLength;
   final DateTime anchorDate;
+  final VoidCallback onEditStart;
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +200,7 @@ class _Footer extends StatelessWidget {
             ),
           ),
         ),
-        _RangeCard(anchorDate: anchorDate),
+        _RangeCard(anchorDate: anchorDate, onEditStart: onEditStart),
       ],
     );
   }
@@ -445,29 +463,21 @@ class _CycleSummary extends StatelessWidget {
 }
 
 class _RangeCard extends StatelessWidget {
-  const _RangeCard({required this.anchorDate});
+  const _RangeCard({required this.anchorDate, required this.onEditStart});
   final DateTime anchorDate;
+  final VoidCallback onEditStart;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        children: [
-          _RangeRow(
-            label: '시작일',
-            value: '${anchorDate.year}년 ${anchorDate.month}월 ${anchorDate.day}일',
-          ),
-          Container(
-            height: 1,
-            margin: const EdgeInsets.only(left: 16),
-            color: AppColors.lineSoft,
-          ),
-          const _RangeRow(label: '종료일', value: '무기한', muted: true),
-        ],
+        child: _RangeRow(
+          label: '시작일',
+          value: '${anchorDate.year}년 ${anchorDate.month}월 ${anchorDate.day}일',
+          onTap: onEditStart,
+        ),
       ),
     );
   }
@@ -477,42 +487,51 @@ class _RangeRow extends StatelessWidget {
   const _RangeRow({
     required this.label,
     required this.value,
-    this.muted = false,
+    required this.onTap,
   });
   final String label;
   final String value;
-  final bool muted;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.center,
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text2,
-              letterSpacing: -0.3,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text2,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: muted ? AppColors.text5 : AppColors.text1,
-              letterSpacing: -0.3,
+            const Spacer(),
+            Text(
+              value,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text1,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.chevron_right,
+              size: 16,
+              color: AppColors.text5,
+            ),
+          ],
+        ),
       ),
     );
   }

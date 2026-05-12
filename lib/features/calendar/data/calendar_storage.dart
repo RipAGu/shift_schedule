@@ -127,4 +127,9 @@ class CalendarStorage {
   Future<void> writeCycle(List<ShiftKind> next) async {
     await cycle.put(_cycleKey, next.map((s) => s.name).toList());
   }
+
+  Future<void> writeAnchorDate(DateTime date) async {
+    final start = DateTime(date.year, date.month, date.day);
+    await cycle.put(_anchorKey, toDateKey(start));
+  }
 }
