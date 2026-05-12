@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
 import '../../calendar/view_model/calendar_view_model.dart';
+import 'phase_picker.dart';
 import 'start_date_picker.dart';
 
 class PatternPage extends ConsumerStatefulWidget {
@@ -40,6 +41,12 @@ class _PatternPageState extends ConsumerState<PatternPage> {
   void _removeAt(int i) {
     if (_draft.length <= 1) return;
     setState(() => _draft.removeAt(i));
+  }
+
+  Future<void> _addPhase() async {
+    final picked = await showPhasePicker(context);
+    if (!mounted || picked == null) return;
+    setState(() => _draft.add(picked));
   }
 
   Future<void> _editStartDate() async {
@@ -89,6 +96,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
                   cycleLength: _draft.length,
                   anchorDate: anchorDate,
                   onEditStart: _editStartDate,
+                  onAddPhase: _addPhase,
                 ),
                 onReorder: _onReorder,
                 proxyDecorator: (child, index, animation) {
@@ -170,11 +178,13 @@ class _Footer extends StatelessWidget {
     required this.cycleLength,
     required this.anchorDate,
     required this.onEditStart,
+    required this.onAddPhase,
   });
 
   final int cycleLength;
   final DateTime anchorDate;
   final VoidCallback onEditStart;
+  final VoidCallback onAddPhase;
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +193,7 @@ class _Footer extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 2),
-        _AddPhaseButton(onTap: null),
+        _AddPhaseButton(onTap: onAddPhase),
         const SizedBox(height: 18),
         _CycleSummary(length: cycleLength),
         const SizedBox(height: 24),
