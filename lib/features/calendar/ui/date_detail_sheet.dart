@@ -101,7 +101,6 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
     final mq = MediaQuery.of(context);
     final keyboardHeight = mq.viewInsets.bottom;
     final maxHeight = (mq.size.height - keyboardHeight) * 0.9;
-    final isOverridden = _appliedShift != _patternShift;
 
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardHeight),
@@ -125,7 +124,6 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
               const SizedBox(height: 14),
               _ShiftCard(
                 appliedShift: _appliedShift,
-                isOverridden: isOverridden,
                 pickerOpen: _pickerOpen,
                 pickerSelection: _pickerSelection,
                 patternShift: _patternShift,
@@ -251,7 +249,6 @@ class _DateHeader extends StatelessWidget {
 class _ShiftCard extends StatelessWidget {
   const _ShiftCard({
     required this.appliedShift,
-    required this.isOverridden,
     required this.pickerOpen,
     required this.pickerSelection,
     required this.patternShift,
@@ -263,7 +260,6 @@ class _ShiftCard extends StatelessWidget {
   });
 
   final ShiftKind appliedShift;
-  final bool isOverridden;
   final bool pickerOpen;
   final ShiftKind pickerSelection;
   final ShiftKind patternShift;
@@ -275,11 +271,15 @@ class _ShiftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayShift = pickerOpen ? pickerSelection : appliedShift;
+    final displayOverridden = displayShift != patternShift;
+    final showResetButton = !pickerOpen && appliedShift != patternShift;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: appliedShift.soft,
+        color: displayShift.soft,
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
@@ -287,25 +287,27 @@ class _ShiftCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _topRow(),
+          _topRow(displayShift, displayOverridden),
           if (pickerOpen) ...[
             const SizedBox(height: 14),
             const Text(
               '어떤 근무로 바꿀까요?',
               style: TextStyle(
                 fontFamily: 'Pretendard',
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: AppColors.text3,
+                color: AppColors.text4,
                 letterSpacing: -0.2,
               ),
             ),
+            const SizedBox(height: 8),
+            _PickerGrid(selected: pickerSelection, onPick: onPick),
             const SizedBox(height: 10),
-            _PickerList(selected: pickerSelection, onPick: onPick),
-            const SizedBox(height: 12),
-            _ConfirmRow(picked: pickerSelection, onApply: onApply),
+            _SelectedDetailRow(picked: pickerSelection),
+            const SizedBox(height: 8),
+            _ApplyButton(shift: pickerSelection, onTap: onApply),
           ],
-          if (isOverridden && !pickerOpen) ...[
+          if (showResetButton) ...[
             const SizedBox(height: 10),
             InkWell(
               onTap: onResetToPattern,
@@ -335,19 +337,20 @@ class _ShiftCard extends StatelessWidget {
     );
   }
 
-  Widget _topRow() {
+  Widget _topRow(ShiftKind shift, bool overridden) {
     return Row(
       children: [
-        Container(
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
           width: 42,
           height: 42,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: appliedShift.solid,
+            color: shift.solid,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            appliedShift.short,
+            shift.short,
             style: const TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 18,
@@ -366,7 +369,7 @@ class _ShiftCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    appliedShift.name,
+                    shift.name,
                     style: const TextStyle(
                       fontFamily: 'Pretendard',
                       fontSize: 15,
@@ -375,7 +378,7 @@ class _ShiftCard extends StatelessWidget {
                       letterSpacing: -0.3,
                     ),
                   ),
-                  if (isOverridden) ...[
+                  if (overridden) ...[
                     const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -389,7 +392,7 @@ class _ShiftCard extends StatelessWidget {
                           fontFamily: 'Pretendard',
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: appliedShift.solid,
+                          color: shift.solid,
                         ),
                       ),
                     ),
@@ -398,7 +401,7 @@ class _ShiftCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                appliedShift.time,
+                shift.time,
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 12.5,
@@ -412,10 +415,11 @@ class _ShiftCard extends StatelessWidget {
         InkWell(
           onTap: pickerOpen ? onClosePicker : onOpenPicker,
           borderRadius: BorderRadius.circular(999),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: pickerOpen ? appliedShift.solid : const Color(0xB3FFFFFF),
+              color: pickerOpen ? shift.solid : const Color(0xB3FFFFFF),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
@@ -424,7 +428,7 @@ class _ShiftCard extends StatelessWidget {
                 fontFamily: 'Pretendard',
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: pickerOpen ? Colors.white : appliedShift.solid,
+                color: pickerOpen ? Colors.white : shift.solid,
                 letterSpacing: -0.2,
               ),
             ),
@@ -435,31 +439,32 @@ class _ShiftCard extends StatelessWidget {
   }
 }
 
-class _PickerList extends StatelessWidget {
-  const _PickerList({required this.selected, required this.onPick});
+class _PickerGrid extends StatelessWidget {
+  const _PickerGrid({required this.selected, required this.onPick});
   final ShiftKind selected;
   final ValueChanged<ShiftKind> onPick;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
         for (final s in ShiftKind.values) ...[
-          _PickerItem(
-            shift: s,
-            selected: s == selected,
-            onTap: () => onPick(s),
+          Expanded(
+            child: _PickerCard(
+              shift: s,
+              selected: s == selected,
+              onTap: () => onPick(s),
+            ),
           ),
-          if (s != ShiftKind.values.last) const SizedBox(height: 6),
+          if (s != ShiftKind.values.last) const SizedBox(width: 6),
         ],
       ],
     );
   }
 }
 
-class _PickerItem extends StatelessWidget {
-  const _PickerItem({
+class _PickerCard extends StatelessWidget {
+  const _PickerCard({
     required this.shift,
     required this.selected,
     required this.onTap,
@@ -473,54 +478,81 @@ class _PickerItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+      borderRadius: BorderRadius.circular(14),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 76,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
-          color: const Color(0xE6FFFFFF),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? shift.solid : Colors.transparent,
-            width: 1.5,
-          ),
+          color: selected ? shift.solid : const Color(0xEBFFFFFF),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: shift.solid.withValues(alpha: 0.33),
+                    offset: const Offset(0, 4),
+                    blurRadius: 12,
+                  ),
+                ]
+              : null,
+          border: selected
+              ? null
+              : Border.all(color: const Color(0x0F0F172A), width: 1),
         ),
-        child: Row(
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: shift.solid,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                shift.short,
-                style: const TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.3,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: selected ? const Color(0x38FFFFFF) : shift.solid,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    shift.short,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                shift.name,
-                style: const TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text1,
-                  letterSpacing: -0.3,
+                const SizedBox(height: 4),
+                Text(
+                  shift.name,
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? Colors.white : AppColors.text1,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-              ),
+              ],
             ),
             if (selected)
-              Icon(Icons.check_rounded, size: 18, color: shift.solid),
+              Positioned(
+                top: 5,
+                right: 5,
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.check_rounded, size: 10, color: shift.solid),
+                ),
+              ),
           ],
         ),
       ),
@@ -528,17 +560,16 @@ class _PickerItem extends StatelessWidget {
   }
 }
 
-class _ConfirmRow extends StatelessWidget {
-  const _ConfirmRow({required this.picked, required this.onApply});
+class _SelectedDetailRow extends StatelessWidget {
+  const _SelectedDetailRow({required this.picked});
   final ShiftKind picked;
-  final VoidCallback onApply;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xE6FFFFFF),
+        color: const Color(0xB3FFFFFF),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -553,59 +584,62 @@ class _ConfirmRow extends StatelessWidget {
               letterSpacing: -0.2,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  picked.name,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.text1,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  picked.time,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.text4,
-                  ),
-                ),
-              ],
+          const SizedBox(width: 10),
+          Text(
+            picked.name,
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: picked.solid,
+              letterSpacing: -0.3,
             ),
           ),
-          InkWell(
-            onTap: onApply,
-            borderRadius: BorderRadius.circular(999),
-            child: Container(
-              height: 32,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: picked.solid,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Text(
-                '적용',
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: -0.2,
-                ),
-              ),
+          const Spacer(),
+          Text(
+            picked.time,
+            style: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text4,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ApplyButton extends StatelessWidget {
+  const _ApplyButton({required this.shift, required this.onTap});
+  final ShiftKind shift;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: double.infinity,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: shift.solid,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Text(
+          '적용',
+          style: TextStyle(
+            fontFamily: 'Pretendard',
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: -0.3,
+          ),
+        ),
       ),
     );
   }
