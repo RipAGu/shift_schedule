@@ -32,6 +32,7 @@ class CalendarPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bg,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           Column(

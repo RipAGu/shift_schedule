@@ -98,26 +98,24 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final maxHeight = media.size.height * 0.85;
+    final mq = MediaQuery.of(context);
+    final keyboardHeight = mq.viewInsets.bottom;
+    final maxHeight = (mq.size.height - keyboardHeight) * 0.9;
     final isOverridden = _appliedShift != _patternShift;
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: AppShadows.sheet,
-        ),
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 10,
-          bottom: 24 + media.viewInsets.bottom,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardHeight),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: AppShadows.sheet,
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -154,7 +152,8 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _dragHandle() => Center(
