@@ -26,4 +26,11 @@ class CalendarRepository {
   DateTime getAnchorDate() => _storage.readAnchorDate();
   Map<DateKey, Note> getAllNotes() => _storage.readAllNotes();
   Map<DateKey, ShiftKind> getAllOverrides() => _storage.readAllOverrides();
+
+  Future<void> putNote(DateKey key, Note note) =>
+      _storage.notes.put(key, note);
+  Future<void> deleteNote(DateKey key) => _storage.notes.delete(key);
+  Future<void> putOverride(DateKey key, ShiftKind shift) =>
+      _storage.overrides.put(key, shift.name);
+  Future<void> deleteOverride(DateKey key) => _storage.overrides.delete(key);
 }

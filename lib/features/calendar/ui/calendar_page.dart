@@ -10,6 +10,7 @@ import '../view_model/calendar_state.dart';
 import '../view_model/calendar_view_model.dart';
 import 'app_tab_bar.dart';
 import 'calendar_cell.dart';
+import 'date_detail_sheet.dart';
 import 'month_header.dart';
 import 'stats_strip.dart';
 
@@ -69,6 +70,7 @@ class CalendarPage extends ConsumerWidget {
                             isSameDay(d, state.selectedDay),
                         onDaySelected: (selected, focused) {
                           vm.selectDay(selected);
+                          showDateDetailSheet(context, selected);
                         },
                         onPageChanged: (focused) {
                           final cur = state.focusedMonth;
