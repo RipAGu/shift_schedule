@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../features/calendar/ui/calendar_page.dart';
+import 'home_shell.dart';
 
 part 'router.g.dart';
 
@@ -12,7 +12,7 @@ GoRouter goRouter(Ref ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const CalendarPage(),
+        builder: (context, state) => const HomeShell(),
       ),
     ],
   );

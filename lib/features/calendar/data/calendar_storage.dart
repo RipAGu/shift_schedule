@@ -123,4 +123,8 @@ class CalendarStorage {
     }
     return map;
   }
+
+  Future<void> writeCycle(List<ShiftKind> next) async {
+    await cycle.put(_cycleKey, next.map((s) => s.name).toList());
+  }
 }

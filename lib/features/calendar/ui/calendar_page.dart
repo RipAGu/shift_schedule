@@ -8,7 +8,6 @@ import '../../../core/shift.dart';
 import '../domain/shift_calculator.dart';
 import '../view_model/calendar_state.dart';
 import '../view_model/calendar_view_model.dart';
-import 'app_tab_bar.dart';
 import 'calendar_cell.dart';
 import 'date_detail_sheet.dart';
 import 'month_header.dart';
@@ -33,76 +32,68 @@ class CalendarPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       resizeToAvoidBottomInset: false,
-      body: Stack(
+      body: Column(
         children: [
-          Column(
-            children: [
-              SizedBox(height: MediaQuery.of(context).padding.top),
-              MonthHeader(
-                month: state.focusedMonth,
-                onPrev: () => vm.changeMonth(-1),
-                onNext: () => vm.changeMonth(1),
-                onToday: vm.goToCurrentMonth,
-              ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    const dowHeight = 22.0;
-                    final rowHeight = (constraints.maxHeight - dowHeight) / 6;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: TableCalendar(
-                        firstDay: DateTime(2020, 1, 1),
-                        lastDay: DateTime(2035, 12, 31),
-                        focusedDay: state.focusedMonth,
-                        currentDay: today,
-                        startingDayOfWeek: StartingDayOfWeek.sunday,
-                        sixWeekMonthsEnforced: true,
-                        availableGestures: AvailableGestures.horizontalSwipe,
-                        headerVisible: false,
-                        daysOfWeekHeight: dowHeight,
-                        rowHeight: rowHeight,
-                        calendarStyle: const CalendarStyle(
-                          cellMargin: EdgeInsets.zero,
-                          cellPadding: EdgeInsets.zero,
-                        ),
-                        selectedDayPredicate: (d) =>
-                            state.selectedDay != null &&
-                            isSameDay(d, state.selectedDay),
-                        onDaySelected: (selected, focused) {
-                          vm.selectDay(selected);
-                          showDateDetailSheet(context, selected);
-                        },
-                        onPageChanged: (focused) {
-                          final cur = state.focusedMonth;
-                          final delta =
-                              (focused.year - cur.year) * 12 +
-                              (focused.month - cur.month);
-                          if (delta != 0) vm.changeMonth(delta);
-                        },
-                        calendarBuilders: CalendarBuilders(
-                          dowBuilder: (context, day) => _DowLabel(day: day),
-                          defaultBuilder: (ctx, day, _) =>
-                              _buildCell(state, day, isOutside: false),
-                          todayBuilder: (ctx, day, _) =>
-                              _buildCell(state, day, isToday: true),
-                          outsideBuilder: (ctx, day, _) =>
-                              _buildCell(state, day, isOutside: true),
-                          selectedBuilder: (ctx, day, _) =>
-                              _buildCell(state, day, isSelected: true),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              StatsStrip(stats: stats),
-            ],
+          SizedBox(height: MediaQuery.of(context).padding.top),
+          MonthHeader(
+            month: state.focusedMonth,
+            onPrev: () => vm.changeMonth(-1),
+            onNext: () => vm.changeMonth(1),
+            onToday: vm.goToCurrentMonth,
           ),
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: AppTabBar(active: AppTab.calendar),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const dowHeight = 22.0;
+                final rowHeight = (constraints.maxHeight - dowHeight) / 6;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: TableCalendar(
+                    firstDay: DateTime(2020, 1, 1),
+                    lastDay: DateTime(2035, 12, 31),
+                    focusedDay: state.focusedMonth,
+                    currentDay: today,
+                    startingDayOfWeek: StartingDayOfWeek.sunday,
+                    sixWeekMonthsEnforced: true,
+                    availableGestures: AvailableGestures.horizontalSwipe,
+                    headerVisible: false,
+                    daysOfWeekHeight: dowHeight,
+                    rowHeight: rowHeight,
+                    calendarStyle: const CalendarStyle(
+                      cellMargin: EdgeInsets.zero,
+                      cellPadding: EdgeInsets.zero,
+                    ),
+                    selectedDayPredicate: (d) =>
+                        state.selectedDay != null &&
+                        isSameDay(d, state.selectedDay),
+                    onDaySelected: (selected, focused) {
+                      vm.selectDay(selected);
+                      showDateDetailSheet(context, selected);
+                    },
+                    onPageChanged: (focused) {
+                      final cur = state.focusedMonth;
+                      final delta =
+                          (focused.year - cur.year) * 12 +
+                          (focused.month - cur.month);
+                      if (delta != 0) vm.changeMonth(delta);
+                    },
+                    calendarBuilders: CalendarBuilders(
+                      dowBuilder: (context, day) => _DowLabel(day: day),
+                      defaultBuilder: (ctx, day, _) =>
+                          _buildCell(state, day, isOutside: false),
+                      todayBuilder: (ctx, day, _) =>
+                          _buildCell(state, day, isToday: true),
+                      outsideBuilder: (ctx, day, _) =>
+                          _buildCell(state, day, isOutside: true),
+                      selectedBuilder: (ctx, day, _) =>
+                          _buildCell(state, day, isSelected: true),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
+          StatsStrip(stats: stats),
         ],
       ),
     );

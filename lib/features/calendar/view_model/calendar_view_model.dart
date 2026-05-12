@@ -40,6 +40,13 @@ class CalendarViewModel extends _$CalendarViewModel {
     state = state.copyWith(selectedDay: day);
   }
 
+  Future<void> savePattern(List<ShiftKind> cycle) async {
+    if (cycle.isEmpty) return;
+    final repo = ref.read(calendarRepositoryProvider);
+    await repo.putCycle(cycle);
+    state = state.copyWith(cycle: List.unmodifiable(cycle));
+  }
+
   Future<void> saveShiftOverride({
     required DateTime day,
     required ShiftKind shift,
