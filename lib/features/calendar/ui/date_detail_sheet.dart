@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/tokens.dart';
 import '../../../core/date_key.dart';
 import '../../../core/shift.dart';
+import '../../holidays/data/holiday_repository.dart';
 import '../domain/shift_calculator.dart';
 import '../view_model/calendar_view_model.dart';
 
@@ -118,6 +119,12 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
     final keyboardHeight = mq.viewInsets.bottom;
     final maxHeight = (mq.size.height - keyboardHeight) * 0.9;
 
+    final holidayMap = ref
+            .watch(yearHolidaysProvider(widget.day.year))
+            .value ??
+        const <String, String>{};
+    final holiday = holidayMap[toDateKey(widget.day)];
+
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardHeight),
       child: ConstrainedBox(
@@ -136,7 +143,11 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
             children: [
               _dragHandle(),
               const SizedBox(height: 10),
-              _DateHeader(day: widget.day, onClose: () => Navigator.of(context).pop()),
+              _DateHeader(
+                day: widget.day,
+                holidayName: holiday,
+                onClose: () => Navigator.of(context).pop(),
+              ),
               const SizedBox(height: 14),
               _ShiftCard(
                 appliedShift: _appliedShift,
@@ -184,17 +195,25 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
 }
 
 class _DateHeader extends StatelessWidget {
-  const _DateHeader({required this.day, required this.onClose});
+  const _DateHeader({
+    required this.day,
+    required this.holidayName,
+    required this.onClose,
+  });
   final DateTime day;
+  final String? holidayName;
   final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
-    final dayColor = day.weekday == DateTime.sunday
+    final hasHoliday = holidayName != null;
+    final dayColor = hasHoliday
         ? AppColors.red
-        : day.weekday == DateTime.saturday
-            ? AppColors.blue
-            : AppColors.text1;
+        : day.weekday == DateTime.sunday
+            ? AppColors.red
+            : day.weekday == DateTime.saturday
+                ? AppColors.blue
+                : AppColors.text1;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -239,6 +258,23 @@ class _DateHeader extends StatelessWidget {
                       color: AppColors.text3,
                     ),
                   ),
+                  if (hasHoliday) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        holidayName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
