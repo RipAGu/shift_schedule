@@ -159,11 +159,6 @@ struct ShiftCalendarWidgetView: View {
             cal.date(byAdding: .day, value: i - firstWeekday, to: firstOfMonth)!
         }
 
-        let inMonthShifts: Set<String> = entry.payload != nil
-            ? Set(cells.filter { cal.component(.month, from: $0) == month }
-                       .map { shiftFor(date: $0, payload: entry.payload!) })
-            : []
-
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .lastTextBaseline) {
                 Text("\(month)월")
@@ -173,7 +168,6 @@ struct ShiftCalendarWidgetView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(textSecondary)
                 Spacer()
-                LegendRow(shiftCodes: inMonthShifts, payload: entry.payload)
             }
             .padding(.bottom, 8)
 
@@ -216,36 +210,6 @@ struct ShiftCalendarWidgetView: View {
     }
 }
 
-// MARK: - Legend (top right)
-
-private struct LegendRow: View {
-    let shiftCodes: Set<String>
-    let payload: WidgetPayload?
-
-    var body: some View {
-        // 표시 순서: base 우선(주간/야간/당직/비번/휴무), 그 다음 커스텀.
-        let baseOrder = ["day", "night", "duty", "off", "holiday"]
-        let baseVisible = baseOrder.filter { shiftCodes.contains($0) }
-        let customVisible = shiftCodes
-            .filter { !baseOrder.contains($0) }
-            .sorted()
-        let visible = baseVisible + customVisible
-        HStack(spacing: 6) {
-            ForEach(visible, id: \.self) { code in
-                if let s = resolveShift(code, payload: payload) {
-                    HStack(spacing: 3) {
-                        Circle()
-                            .fill(s.solid)
-                            .frame(width: 6, height: 6)
-                        Text(s.name)
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(textSecondary)
-                    }
-                }
-            }
-        }
-    }
-}
 
 // MARK: - Cell
 
