@@ -14,13 +14,19 @@ class AppTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Material NavigationBar 가 하는 것과 동일한 패턴: 시스템 nav (Android 제스처/3버튼)
+    // 와 iOS 홈 인디케이터 인셋을 viewPadding 에서 읽어 내부 padding 에 합산.
+    final bottomInset = MediaQuery
+        .viewPaddingOf(context)
+        .bottom;
+    final bottomPadding = bottomInset > 0 ? bottomInset + 6 : 26.0;
     return Material(
       type: MaterialType.transparency,
       child: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            padding: const EdgeInsets.only(top: 6, bottom: 26),
+            padding: EdgeInsets.only(top: 6, bottom: bottomPadding),
             decoration: const BoxDecoration(
               color: Color(0xF5FFFFFF),
               border: Border(

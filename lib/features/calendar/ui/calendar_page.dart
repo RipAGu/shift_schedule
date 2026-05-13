@@ -105,8 +105,12 @@ class CalendarPage extends ConsumerWidget {
               },
             ),
           ),
-          // 하단 floating 탭바 영역만큼 공간 확보 (이전엔 StatsStrip 이 차지).
-          const SizedBox(height: 78),
+          // HomeShell Scaffold (extendBody:true) 가 padding.bottom 에 탭바+시스템 nav
+          // 인셋을 자동 주입 → 디바이스마다 정확한 높이로 공간 확보.
+          SizedBox(height: MediaQuery
+              .of(context)
+              .padding
+              .bottom),
         ],
       ),
     );

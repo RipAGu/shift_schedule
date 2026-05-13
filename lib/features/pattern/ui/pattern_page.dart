@@ -556,8 +556,12 @@ class _BottomAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 탭바 + 시스템 nav 인셋 위로 24px 띄우기. SafeArea(bottom:false) 안이지만
+    // Scaffold extendBody 가 padding.bottom 에 정확한 값 주입해줌.
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 102),
+      padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery
+          .paddingOf(context)
+          .bottom + 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,

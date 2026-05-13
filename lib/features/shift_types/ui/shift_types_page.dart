@@ -35,7 +35,12 @@ class _ShiftTypesPageState extends ConsumerState<ShiftTypesPage> {
             const _Heading(),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  0,
+                  20,
+                  MediaQuery.paddingOf(context).bottom + 24,
+                ),
                 children: [
                   _CountRow(count: customs.length, editMode: _editMode),
                   const SizedBox(height: 8),
