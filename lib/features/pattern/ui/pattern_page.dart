@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
 import '../../calendar/view_model/calendar_view_model.dart';
+import '../../shift_types/view_model/shift_types_view_model.dart';
 import 'phase_picker.dart';
 import 'start_date_picker.dart';
 
@@ -17,15 +18,15 @@ class PatternPage extends ConsumerStatefulWidget {
 }
 
 class _PatternPageState extends ConsumerState<PatternPage> {
-  late List<ShiftKind> _draft;
-  late List<ShiftKind> _saved;
+  late List<String> _draft;
+  late List<String> _saved;
 
   @override
   void initState() {
     super.initState();
     final cycle = ref.read(calendarViewModelProvider).cycle;
-    _saved = List<ShiftKind>.from(cycle);
-    _draft = List<ShiftKind>.from(cycle);
+    _saved = List<String>.from(cycle);
+    _draft = List<String>.from(cycle);
   }
 
   bool get _isDirty =>
@@ -48,7 +49,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
   Future<void> _addPhase() async {
     final picked = await showPhasePicker(context);
     if (!mounted || picked == null) return;
-    setState(() => _draft.add(picked));
+    setState(() => _draft.add(picked.key));
   }
 
   Future<void> _editStartDate() async {
@@ -65,7 +66,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
   Future<void> _apply() async {
     await ref.read(calendarViewModelProvider.notifier).savePattern(_draft);
     if (!mounted) return;
-    setState(() => _saved = List<ShiftKind>.from(_draft));
+    setState(() => _saved = List<String>.from(_draft));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('패턴이 적용됐어요',
@@ -81,6 +82,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
     final anchorDate = ref.watch(
       calendarViewModelProvider.select((s) => s.anchorDate),
     );
+    final customs = ref.watch(shiftTypesViewModelProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -107,12 +109,12 @@ class _PatternPageState extends ConsumerState<PatternPage> {
                 children: [
                   for (var i = 0; i < _draft.length; i++)
                     Padding(
-                      key: ValueKey('phase-$i-${_draft[i].name}'),
+                      key: ValueKey('phase-$i-${_draft[i]}'),
                       padding: const EdgeInsets.only(bottom: 8),
                       child: _PhaseRow(
                         index: i,
                         total: _draft.length,
-                        shift: _draft[i],
+                        shift: shiftByKeyOrFallback(_draft[i], customs),
                         canRemove: _draft.length > 1,
                         onRemove: () => _removeAt(i),
                       ),
@@ -226,7 +228,7 @@ class _PhaseRow extends StatelessWidget {
 
   final int index;
   final int total;
-  final ShiftKind shift;
+  final Shift shift;
   final bool canRemove;
   final VoidCallback onRemove;
 

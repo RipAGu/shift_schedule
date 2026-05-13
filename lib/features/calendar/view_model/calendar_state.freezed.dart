@@ -14,7 +14,17 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CalendarState {
 
- DateTime get focusedMonth; DateTime? get selectedDay; List<ShiftKind> get cycle; DateTime get anchorDate; Map<DateKey, Note> get notes; Map<DateKey, ShiftKind> get overrides;
+  DateTime get focusedMonth;
+
+  DateTime? get selectedDay;
+
+  List<String> get cycle;
+
+  DateTime get anchorDate;
+
+  Map<DateKey, Note> get notes;
+
+  Map<DateKey, String> get overrides;
 /// Create a copy of CalendarState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +55,10 @@ abstract mixin class $CalendarStateCopyWith<$Res>  {
   factory $CalendarStateCopyWith(CalendarState value, $Res Function(CalendarState) _then) = _$CalendarStateCopyWithImpl;
 @useResult
 $Res call({
- DateTime focusedMonth, DateTime? selectedDay, List<ShiftKind> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<DateKey, ShiftKind> overrides
+  DateTime focusedMonth, DateTime? selectedDay, List<
+      String> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<
+      DateKey,
+      String> overrides
 });
 
 
@@ -67,10 +80,13 @@ class _$CalendarStateCopyWithImpl<$Res>
 focusedMonth: null == focusedMonth ? _self.focusedMonth : focusedMonth // ignore: cast_nullable_to_non_nullable
 as DateTime,selectedDay: freezed == selectedDay ? _self.selectedDay : selectedDay // ignore: cast_nullable_to_non_nullable
 as DateTime?,cycle: null == cycle ? _self.cycle : cycle // ignore: cast_nullable_to_non_nullable
-as List<ShiftKind>,anchorDate: null == anchorDate ? _self.anchorDate : anchorDate // ignore: cast_nullable_to_non_nullable
+  as List<String>,
+    anchorDate: null == anchorDate
+        ? _self.anchorDate
+        : anchorDate // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
 as Map<DateKey, Note>,overrides: null == overrides ? _self.overrides : overrides // ignore: cast_nullable_to_non_nullable
-as Map<DateKey, ShiftKind>,
+  as Map<DateKey, String>,
   ));
 }
 
@@ -155,7 +171,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime focusedMonth,  DateTime? selectedDay,  List<ShiftKind> cycle,  DateTime anchorDate,  Map<DateKey, Note> notes,  Map<DateKey, ShiftKind> overrides)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime focusedMonth, DateTime? selectedDay, List<String> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<DateKey, String> overrides)? $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CalendarState() when $default != null:
 return $default(_that.focusedMonth,_that.selectedDay,_that.cycle,_that.anchorDate,_that.notes,_that.overrides);case _:
@@ -176,7 +192,7 @@ return $default(_that.focusedMonth,_that.selectedDay,_that.cycle,_that.anchorDat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime focusedMonth,  DateTime? selectedDay,  List<ShiftKind> cycle,  DateTime anchorDate,  Map<DateKey, Note> notes,  Map<DateKey, ShiftKind> overrides)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime focusedMonth, DateTime? selectedDay, List<String> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<DateKey, String> overrides) $default,) {final _that = this;
 switch (_that) {
 case _CalendarState():
 return $default(_that.focusedMonth,_that.selectedDay,_that.cycle,_that.anchorDate,_that.notes,_that.overrides);case _:
@@ -196,7 +212,7 @@ return $default(_that.focusedMonth,_that.selectedDay,_that.cycle,_that.anchorDat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime focusedMonth,  DateTime? selectedDay,  List<ShiftKind> cycle,  DateTime anchorDate,  Map<DateKey, Note> notes,  Map<DateKey, ShiftKind> overrides)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime focusedMonth, DateTime? selectedDay, List<String> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<DateKey, String> overrides)? $default,) {final _that = this;
 switch (_that) {
 case _CalendarState() when $default != null:
 return $default(_that.focusedMonth,_that.selectedDay,_that.cycle,_that.anchorDate,_that.notes,_that.overrides);case _:
@@ -211,13 +227,21 @@ return $default(_that.focusedMonth,_that.selectedDay,_that.cycle,_that.anchorDat
 
 
 class _CalendarState implements CalendarState {
-  const _CalendarState({required this.focusedMonth, this.selectedDay, required final  List<ShiftKind> cycle, required this.anchorDate, required final  Map<DateKey, Note> notes, required final  Map<DateKey, ShiftKind> overrides}): _cycle = cycle,_notes = notes,_overrides = overrides;
+  const _CalendarState(
+      {required this.focusedMonth, this.selectedDay, required final List<
+          String> cycle, required this.anchorDate, required final Map<
+          DateKey,
+          Note> notes, required final Map<DateKey, String> overrides})
+      : _cycle = cycle,
+        _notes = notes,
+        _overrides = overrides;
   
 
 @override final  DateTime focusedMonth;
 @override final  DateTime? selectedDay;
- final  List<ShiftKind> _cycle;
-@override List<ShiftKind> get cycle {
+  final List<String> _cycle;
+
+  @override List<String> get cycle {
   if (_cycle is EqualUnmodifiableListView) return _cycle;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_cycle);
@@ -231,8 +255,9 @@ class _CalendarState implements CalendarState {
   return EqualUnmodifiableMapView(_notes);
 }
 
- final  Map<DateKey, ShiftKind> _overrides;
-@override Map<DateKey, ShiftKind> get overrides {
+  final Map<DateKey, String> _overrides;
+
+  @override Map<DateKey, String> get overrides {
   if (_overrides is EqualUnmodifiableMapView) return _overrides;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_overrides);
@@ -269,7 +294,10 @@ abstract mixin class _$CalendarStateCopyWith<$Res> implements $CalendarStateCopy
   factory _$CalendarStateCopyWith(_CalendarState value, $Res Function(_CalendarState) _then) = __$CalendarStateCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime focusedMonth, DateTime? selectedDay, List<ShiftKind> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<DateKey, ShiftKind> overrides
+  DateTime focusedMonth, DateTime? selectedDay, List<
+      String> cycle, DateTime anchorDate, Map<DateKey, Note> notes, Map<
+      DateKey,
+      String> overrides
 });
 
 
@@ -291,10 +319,13 @@ class __$CalendarStateCopyWithImpl<$Res>
 focusedMonth: null == focusedMonth ? _self.focusedMonth : focusedMonth // ignore: cast_nullable_to_non_nullable
 as DateTime,selectedDay: freezed == selectedDay ? _self.selectedDay : selectedDay // ignore: cast_nullable_to_non_nullable
 as DateTime?,cycle: null == cycle ? _self._cycle : cycle // ignore: cast_nullable_to_non_nullable
-as List<ShiftKind>,anchorDate: null == anchorDate ? _self.anchorDate : anchorDate // ignore: cast_nullable_to_non_nullable
+  as List<String>,
+    anchorDate: null == anchorDate
+        ? _self.anchorDate
+        : anchorDate // ignore: cast_nullable_to_non_nullable
 as DateTime,notes: null == notes ? _self._notes : notes // ignore: cast_nullable_to_non_nullable
 as Map<DateKey, Note>,overrides: null == overrides ? _self._overrides : overrides // ignore: cast_nullable_to_non_nullable
-as Map<DateKey, ShiftKind>,
+  as Map<DateKey, String>,
   ));
 }
 

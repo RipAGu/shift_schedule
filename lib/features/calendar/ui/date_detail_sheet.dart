@@ -5,6 +5,7 @@ import '../../../app/tokens.dart';
 import '../../../core/date_key.dart';
 import '../../../core/shift.dart';
 import '../../holidays/data/holiday_repository.dart';
+import '../../shift_types/view_model/shift_types_view_model.dart';
 import '../domain/shift_calculator.dart';
 import '../view_model/calendar_view_model.dart';
 
@@ -40,9 +41,9 @@ class DateDetailSheet extends ConsumerStatefulWidget {
 }
 
 class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
-  late ShiftKind _appliedShift;
-  late ShiftKind _pickerSelection;
-  late ShiftKind _patternShift;
+  late String _appliedShiftKey;
+  late String _pickerSelectionKey;
+  late String _patternShiftKey;
   String? _emoji;
   bool _pickerOpen = false;
   final _memoCtl = TextEditingController();
@@ -54,13 +55,13 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
     final key = toDateKey(widget.day);
     final note = state.notes[key];
     final override = state.overrides[key];
-    _patternShift = shiftFor(
+    _patternShiftKey = shiftKeyFor(
       date: widget.day,
       cycle: state.cycle,
       anchorDate: state.anchorDate,
     );
-    _appliedShift = override ?? _patternShift;
-    _pickerSelection = _appliedShift;
+    _appliedShiftKey = override ?? _patternShiftKey;
+    _pickerSelectionKey = _appliedShiftKey;
     _emoji = note?.emoji;
     _memoCtl.text = note?.memo ?? '';
   }
@@ -76,7 +77,7 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
           day: widget.day,
           emoji: _emoji,
           memo: _memoCtl.text,
-          shift: _appliedShift,
+      shiftKey: _appliedShiftKey,
         );
     if (mounted) Navigator.of(context).pop();
   }
@@ -84,32 +85,32 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
   void _openPicker() {
     setState(() {
       _pickerOpen = true;
-      _pickerSelection = _appliedShift;
+      _pickerSelectionKey = _appliedShiftKey;
     });
   }
 
   void _closePicker() => setState(() => _pickerOpen = false);
 
   Future<void> _applyPicker() async {
-    final picked = _pickerSelection;
+    final picked = _pickerSelectionKey;
     setState(() {
-      _appliedShift = picked;
+      _appliedShiftKey = picked;
       _pickerOpen = false;
     });
     await ref.read(calendarViewModelProvider.notifier).saveShiftOverride(
           day: widget.day,
-          shift: picked,
+      shiftKey: picked,
         );
   }
 
   Future<void> _resetToPattern() async {
     setState(() {
-      _appliedShift = _patternShift;
-      _pickerSelection = _patternShift;
+      _appliedShiftKey = _patternShiftKey;
+      _pickerSelectionKey = _patternShiftKey;
     });
     await ref.read(calendarViewModelProvider.notifier).saveShiftOverride(
           day: widget.day,
-          shift: _patternShift,
+      shiftKey: _patternShiftKey,
         );
   }
 
@@ -118,6 +119,12 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
     final mq = MediaQuery.of(context);
     final keyboardHeight = mq.viewInsets.bottom;
     final maxHeight = (mq.size.height - keyboardHeight) * 0.9;
+    final customs = ref.watch(shiftTypesViewModelProvider);
+    final shifts = allShifts(customs);
+
+    final appliedShift = shiftByKeyOrFallback(_appliedShiftKey, customs);
+    final pickerShift = shiftByKeyOrFallback(_pickerSelectionKey, customs);
+    final patternShift = shiftByKeyOrFallback(_patternShiftKey, customs);
 
     final holidayMap = ref
             .watch(yearHolidaysProvider(widget.day.year))
@@ -138,47 +145,50 @@ class _DateDetailSheetState extends ConsumerState<DateDetailSheet> {
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
           child: SingleChildScrollView(
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _dragHandle(),
-              const SizedBox(height: 10),
-              _DateHeader(
-                day: widget.day,
-                holidayName: holiday,
-                onClose: () => Navigator.of(context).pop(),
-              ),
-              const SizedBox(height: 14),
-              _ShiftCard(
-                appliedShift: _appliedShift,
-                pickerOpen: _pickerOpen,
-                pickerSelection: _pickerSelection,
-                patternShift: _patternShift,
-                onOpenPicker: _openPicker,
-                onClosePicker: _closePicker,
-                onPick: (s) => setState(() => _pickerSelection = s),
-                onApply: _applyPicker,
-                onResetToPattern: _resetToPattern,
-              ),
-              const SizedBox(height: 18),
-              _SectionLabel('스티커'),
-              const SizedBox(height: 8),
-              _StickerGrid(
-                selected: _emoji,
-                onPick: (e) => setState(() => _emoji = (_emoji == e) ? null : e),
-              ),
-              const SizedBox(height: 18),
-              _SectionLabel('메모'),
-              const SizedBox(height: 8),
-              _MemoField(controller: _memoCtl),
-              const SizedBox(height: 16),
-              _PrimaryButton(label: '저장하기', onPressed: _save),
-            ],
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _dragHandle(),
+                const SizedBox(height: 10),
+                _DateHeader(
+                  day: widget.day,
+                  holidayName: holiday,
+                  onClose: () => Navigator.of(context).pop(),
+                ),
+                const SizedBox(height: 14),
+                _ShiftCard(
+                  shifts: shifts,
+                  appliedShift: appliedShift,
+                  pickerOpen: _pickerOpen,
+                  pickerSelection: pickerShift,
+                  patternShift: patternShift,
+                  onOpenPicker: _openPicker,
+                  onClosePicker: _closePicker,
+                  onPick: (s) =>
+                      setState(() => _pickerSelectionKey = s.key),
+                  onApply: _applyPicker,
+                  onResetToPattern: _resetToPattern,
+                ),
+                const SizedBox(height: 18),
+                _SectionLabel('스티커'),
+                const SizedBox(height: 8),
+                _StickerGrid(
+                  selected: _emoji,
+                  onPick: (e) =>
+                      setState(() => _emoji = (_emoji == e) ? null : e),
+                ),
+                const SizedBox(height: 18),
+                _SectionLabel('메모'),
+                const SizedBox(height: 8),
+                _MemoField(controller: _memoCtl),
+                const SizedBox(height: 16),
+                _PrimaryButton(label: '저장하기', onPressed: _save),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _dragHandle() => Center(
@@ -300,6 +310,7 @@ class _DateHeader extends StatelessWidget {
 
 class _ShiftCard extends StatelessWidget {
   const _ShiftCard({
+    required this.shifts,
     required this.appliedShift,
     required this.pickerOpen,
     required this.pickerSelection,
@@ -311,21 +322,23 @@ class _ShiftCard extends StatelessWidget {
     required this.onResetToPattern,
   });
 
-  final ShiftKind appliedShift;
+  final List<Shift> shifts;
+  final Shift appliedShift;
   final bool pickerOpen;
-  final ShiftKind pickerSelection;
-  final ShiftKind patternShift;
+  final Shift pickerSelection;
+  final Shift patternShift;
   final VoidCallback onOpenPicker;
   final VoidCallback onClosePicker;
-  final ValueChanged<ShiftKind> onPick;
+  final ValueChanged<Shift> onPick;
   final VoidCallback onApply;
   final VoidCallback onResetToPattern;
 
   @override
   Widget build(BuildContext context) {
     final displayShift = pickerOpen ? pickerSelection : appliedShift;
-    final displayOverridden = displayShift != patternShift;
-    final showResetButton = !pickerOpen && appliedShift != patternShift;
+    final displayOverridden = displayShift.key != patternShift.key;
+    final showResetButton =
+        !pickerOpen && appliedShift.key != patternShift.key;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -353,7 +366,11 @@ class _ShiftCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            _PickerGrid(selected: pickerSelection, onPick: onPick),
+            _PickerGrid(
+              shifts: shifts,
+              selected: pickerSelection,
+              onPick: onPick,
+            ),
             const SizedBox(height: 10),
             _SelectedDetailRow(picked: pickerSelection),
             const SizedBox(height: 8),
@@ -389,7 +406,7 @@ class _ShiftCard extends StatelessWidget {
     );
   }
 
-  Widget _topRow(ShiftKind shift, bool overridden) {
+  Widget _topRow(Shift shift, bool overridden) {
     return Row(
       children: [
         AnimatedContainer(
@@ -433,7 +450,8 @@ class _ShiftCard extends StatelessWidget {
                   if (overridden) ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xB3FFFFFF),
                         borderRadius: BorderRadius.circular(999),
@@ -492,25 +510,39 @@ class _ShiftCard extends StatelessWidget {
 }
 
 class _PickerGrid extends StatelessWidget {
-  const _PickerGrid({required this.selected, required this.onPick});
-  final ShiftKind selected;
-  final ValueChanged<ShiftKind> onPick;
+  const _PickerGrid({
+    required this.shifts,
+    required this.selected,
+    required this.onPick,
+  });
+
+  final List<Shift> shifts;
+  final Shift selected;
+  final ValueChanged<Shift> onPick;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (final s in ShiftKind.values) ...[
-          Expanded(
-            child: _PickerCard(
-              shift: s,
-              selected: s == selected,
-              onTap: () => onPick(s),
-            ),
-          ),
-          if (s != ShiftKind.values.last) const SizedBox(width: 6),
-        ],
-      ],
+    // 한 row 최대 5개 — 6개 이상이면 자동으로 다음 row 로 래핑.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 6.0;
+        final width = (constraints.maxWidth - spacing * 4) / 5;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final s in shifts)
+              SizedBox(
+                width: width,
+                child: _PickerCard(
+                  shift: s,
+                  selected: s.key == selected.key,
+                  onTap: () => onPick(s),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -522,7 +554,7 @@ class _PickerCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final ShiftKind shift;
+  final Shift shift;
   final bool selected;
   final VoidCallback onTap;
 
@@ -605,7 +637,8 @@ class _PickerCard extends StatelessWidget {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check_rounded, size: 10, color: shift.solid),
+                  child: Icon(Icons.check_rounded,
+                      size: 10, color: shift.solid),
                 ),
               ),
           ],
@@ -617,7 +650,8 @@ class _PickerCard extends StatelessWidget {
 
 class _SelectedDetailRow extends StatelessWidget {
   const _SelectedDetailRow({required this.picked});
-  final ShiftKind picked;
+
+  final Shift picked;
 
   @override
   Widget build(BuildContext context) {
@@ -668,7 +702,8 @@ class _SelectedDetailRow extends StatelessWidget {
 
 class _ApplyButton extends StatelessWidget {
   const _ApplyButton({required this.shift, required this.onTap});
-  final ShiftKind shift;
+
+  final Shift shift;
   final VoidCallback onTap;
 
   @override
@@ -787,7 +822,8 @@ class _MemoField extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
     );
   }
@@ -808,7 +844,8 @@ class _PrimaryButton extends StatelessWidget {
           backgroundColor: AppColors.blue,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14)),
         ),
         child: Text(
           label,

@@ -18,7 +18,7 @@ class CalendarCell extends StatelessWidget {
   });
 
   final DateTime day;
-  final ShiftKind shift;
+  final Shift shift;
   final bool isToday;
   final bool isSelected;
   final bool isOutside;

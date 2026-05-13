@@ -1,7 +1,6 @@
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../../../core/date_key.dart';
-import '../../../core/shift.dart';
 import '../domain/note.dart';
 
 class CalendarStorage {
@@ -17,6 +16,16 @@ class CalendarStorage {
 
   static const _cycleKey = 'current';
   static const _anchorKey = 'anchor';
+
+  // 기본 패턴: 주-주-야-야-비-비 — 새 키 체계로 시드.
+  static const _defaultCycle = <String>[
+    'day',
+    'day',
+    'night',
+    'night',
+    'off',
+    'off',
+  ];
 
   static Future<CalendarStorage> open() async {
     await Hive.initFlutter();
@@ -38,10 +47,7 @@ class CalendarStorage {
 
   Future<void> _seedIfEmpty() async {
     if (cycle.get(_cycleKey) == null) {
-      await cycle.put(
-        _cycleKey,
-        const ['day', 'day', 'night', 'night', 'off', 'off'],
-      );
+      await cycle.put(_cycleKey, _defaultCycle);
     }
     if (cycle.get(_anchorKey) == null) {
       final today = DateTime.now();
@@ -65,28 +71,13 @@ class CalendarStorage {
     }
   }
 
-  static const _defaultCycle = <ShiftKind>[
-    ShiftKind.day,
-    ShiftKind.day,
-    ShiftKind.night,
-    ShiftKind.night,
-    ShiftKind.off,
-    ShiftKind.off,
-  ];
-
-  List<ShiftKind> readCycle() {
+  List<String> readCycle() {
     final raw = cycle.get(_cycleKey);
     if (raw is List) {
-      final result = <ShiftKind>[];
+      final result = <String>[];
       for (final e in raw) {
-        final name = e?.toString();
-        if (name == null) continue;
-        for (final kind in ShiftKind.values) {
-          if (kind.name == name) {
-            result.add(kind);
-            break;
-          }
-        }
+        final s = e?.toString();
+        if (s != null && s.isNotEmpty) result.add(s);
       }
       if (result.isNotEmpty) return result;
     }
@@ -113,23 +104,27 @@ class CalendarStorage {
     return map;
   }
 
-  Map<DateKey, ShiftKind> readAllOverrides() {
-    final map = <DateKey, ShiftKind>{};
+  Map<DateKey, String> readAllOverrides() {
+    final map = <DateKey, String>{};
     for (final key in overrides.keys) {
       final v = overrides.get(key);
-      if (v == null) continue;
-      final kind = ShiftKind.values.where((s) => s.name == v).firstOrNull;
-      if (kind != null) map[key as DateKey] = kind;
+      if (v == null || v.isEmpty) continue;
+      map[key as DateKey] = v;
     }
     return map;
   }
 
-  Future<void> writeCycle(List<ShiftKind> next) async {
-    await cycle.put(_cycleKey, next.map((s) => s.name).toList());
+  Future<void> writeCycle(List<String> next) async {
+    await cycle.put(_cycleKey, next);
   }
 
   Future<void> writeAnchorDate(DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     await cycle.put(_anchorKey, toDateKey(start));
   }
+
+  Future<void> writeOverride(DateKey key, String shiftKey) =>
+      overrides.put(key, shiftKey);
+
+  Future<void> deleteOverride(DateKey key) => overrides.delete(key);
 }

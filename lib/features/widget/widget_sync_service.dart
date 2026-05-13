@@ -22,15 +22,29 @@ class WidgetSyncService {
     _initialized = true;
   }
 
-  Future<void> sync(CalendarState state) async {
+  Future<void> sync(
+    CalendarState state, {
+    required List<CustomShift> customs,
+  }) async {
     try {
       await _ensureInitialized();
 
+      // Swift 위젯이 색상 hex 와 표시 정보를 모두 알 수 있도록 함께 전송.
+      // 알려진 base 키는 Swift 의 기본 매핑을 사용하지만, 커스텀 근무도
+      // 같은 형식의 사전을 통해 폴백 가능.
+      final shifts = <String, Map<String, dynamic>>{};
+      for (final s in Shift.baseShifts) {
+        shifts[s.key] = _shiftJson(s);
+      }
+      for (final c in customs) {
+        shifts[c.key] = _shiftJson(c.toShift());
+      }
+
       final payload = <String, dynamic>{
         'anchorDate': toDateKey(state.anchorDate),
-        'cycle': state.cycle.map(_shiftKey).toList(),
-        'overrides': state.overrides
-            .map((key, value) => MapEntry(key, _shiftKey(value))),
+        'cycle': state.cycle,
+        'overrides': state.overrides,
+        'shifts': shifts,
       };
 
       final json = jsonEncode(payload);
@@ -39,11 +53,11 @@ class WidgetSyncService {
 
       dev.log(
         'Synced widget — cycle:${state.cycle.length}, '
-        'overrides:${state.overrides.length}',
+        'overrides:${state.overrides.length}, '
+        'shifts:${shifts.length}',
         name: 'widget',
       );
     } catch (e) {
-      // Widget sync은 보조 기능이라 실패해도 앱 동작에 영향 없게
       dev.log('Widget sync failed: $e', name: 'widget');
     }
   }
@@ -52,6 +66,16 @@ class WidgetSyncService {
 WidgetSyncService get widgetSyncService => _instance;
 final WidgetSyncService _instance = WidgetSyncService();
 
-/// `ShiftKind.day` → `'day'` (Dart enum identifier, not the Korean display name).
-/// Custom `.name` 필드 때문에 `s.name` 이 '주간' 을 반환하므로 toString 으로 우회.
-String _shiftKey(ShiftKind k) => k.toString().substring('ShiftKind.'.length);
+Map<String, dynamic> _shiftJson(Shift s) => {
+  'key': s.key,
+  'short': s.short,
+  'name': s.name,
+  'solid': _hex(s.solid.toARGB32()),
+  'soft': _hex(s.soft.toARGB32()),
+};
+
+String _hex(int argb) {
+  // 0xAARRGGBB -> "#RRGGBB"
+  final rgb = argb & 0x00FFFFFF;
+  return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
+}

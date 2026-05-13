@@ -6,6 +6,7 @@ import '../../../app/tokens.dart';
 import '../../../core/date_key.dart';
 import '../../../core/shift.dart';
 import '../../holidays/data/holiday_repository.dart';
+import '../../shift_types/view_model/shift_types_view_model.dart';
 import '../domain/shift_calculator.dart';
 import '../view_model/calendar_state.dart';
 import '../view_model/calendar_view_model.dart';
@@ -21,8 +22,9 @@ class CalendarPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(calendarViewModelProvider);
     final vm = ref.read(calendarViewModelProvider.notifier);
+    final customs = ref.watch(shiftTypesViewModelProvider);
     final today = DateTime.now();
-    final stats = monthStats(
+    final stats = monthStatsByKey(
       year: state.focusedMonth.year,
       month: state.focusedMonth.month,
       cycle: state.cycle,
@@ -88,14 +90,18 @@ class CalendarPage extends ConsumerWidget {
                     calendarBuilders: CalendarBuilders(
                       dowBuilder: (context, day) => _DowLabel(day: day),
                       defaultBuilder: (ctx, day, _) =>
-                          _buildCell(state, holidays, day, isOutside: false),
+                          _buildCell(state, customs, holidays, day,
+                              isOutside: false),
                       todayBuilder: (ctx, day, _) =>
-                          _buildCell(state, holidays, day, isToday: true),
+                          _buildCell(state, customs, holidays, day,
+                              isToday: true),
                       outsideBuilder: (ctx, day, _) =>
-                          _buildCell(state, holidays, day, isOutside: true),
+                          _buildCell(state, customs, holidays, day,
+                              isOutside: true),
                       selectedBuilder: (ctx, day, _) =>
                           _buildCell(
                             state,
+                            customs,
                             holidays,
                             day,
                             isSelected: true,
@@ -107,7 +113,7 @@ class CalendarPage extends ConsumerWidget {
               },
             ),
           ),
-          StatsStrip(stats: stats),
+          StatsStrip(stats: stats, customs: customs),
         ],
       ),
     );
@@ -115,6 +121,7 @@ class CalendarPage extends ConsumerWidget {
 
   Widget _buildCell(
     CalendarState state,
+      List<CustomShift> customs,
     Map<String, String> holidays,
     DateTime day, {
     bool isToday = false,
@@ -122,12 +129,13 @@ class CalendarPage extends ConsumerWidget {
     bool isSelected = false,
   }) {
     final key = toDateKey(day);
-    final ShiftKind shift = state.overrides[key] ??
-        shiftFor(
+    final shiftKeyStr = state.overrides[key] ??
+        shiftKeyFor(
           date: day,
           cycle: state.cycle,
           anchorDate: state.anchorDate,
         );
+    final shift = shiftByKeyOrFallback(shiftKeyStr, customs);
     final note = state.notes[key];
     return CalendarCell(
       day: day,

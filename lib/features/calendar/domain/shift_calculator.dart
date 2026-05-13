@@ -1,32 +1,31 @@
 import '../../../core/date_key.dart';
-import '../../../core/shift.dart';
 
-ShiftKind shiftFor({
+String shiftKeyFor({
   required DateTime date,
-  required List<ShiftKind> cycle,
+  required List<String> cycle,
   required DateTime anchorDate,
 }) {
-  if (cycle.isEmpty) return ShiftKind.off;
+  if (cycle.isEmpty) return 'off';
   final diff = daysBetween(anchorDate, date);
   final len = cycle.length;
   final idx = ((diff % len) + len) % len;
   return cycle[idx];
 }
 
-Map<ShiftKind, int> monthStats({
+Map<String, int> monthStatsByKey({
   required int year,
   required int month,
-  required List<ShiftKind> cycle,
+  required List<String> cycle,
   required DateTime anchorDate,
-  required Map<DateKey, ShiftKind> overrides,
+  required Map<DateKey, String> overrides,
 }) {
-  final counts = <ShiftKind, int>{for (final k in ShiftKind.values) k: 0};
+  final counts = <String, int>{};
   final last = DateTime(year, month + 1, 0).day;
   for (var i = 1; i <= last; i++) {
     final d = DateTime(year, month, i);
     final eff =
         overrides[toDateKey(d)] ??
-        shiftFor(date: d, cycle: cycle, anchorDate: anchorDate);
+        shiftKeyFor(date: d, cycle: cycle, anchorDate: anchorDate);
     counts[eff] = (counts[eff] ?? 0) + 1;
   }
   return counts;

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
+import '../../shift_types/view_model/shift_types_view_model.dart';
 
-Future<ShiftKind?> showPhasePicker(BuildContext context) {
-  return showModalBottomSheet<ShiftKind>(
+Future<Shift?> showPhasePicker(BuildContext context) {
+  return showModalBottomSheet<Shift>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -13,13 +15,15 @@ Future<ShiftKind?> showPhasePicker(BuildContext context) {
   );
 }
 
-class _PhasePicker extends StatelessWidget {
+class _PhasePicker extends ConsumerWidget {
   const _PhasePicker();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final mq = MediaQuery.of(context);
     final maxHeight = (mq.size.height - mq.viewInsets.bottom) * 0.85;
+    final customs = ref.watch(shiftTypesViewModelProvider);
+    final shifts = allShifts(customs);
 
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),
@@ -60,12 +64,12 @@ class _PhasePicker extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              for (var i = 0; i < ShiftKind.values.length; i++) ...[
+              for (var i = 0; i < shifts.length; i++) ...[
                 _PhaseOption(
-                  shift: ShiftKind.values[i],
-                  onTap: () => Navigator.of(context).pop(ShiftKind.values[i]),
+                  shift: shifts[i],
+                  onTap: () => Navigator.of(context).pop(shifts[i]),
                 ),
-                if (i != ShiftKind.values.length - 1) const SizedBox(height: 8),
+                if (i != shifts.length - 1) const SizedBox(height: 8),
               ],
             ],
           ),
@@ -77,7 +81,8 @@ class _PhasePicker extends StatelessWidget {
 
 class _PhaseOption extends StatelessWidget {
   const _PhaseOption({required this.shift, required this.onTap});
-  final ShiftKind shift;
+
+  final Shift shift;
   final VoidCallback onTap;
 
   @override

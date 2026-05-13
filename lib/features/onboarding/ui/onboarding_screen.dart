@@ -5,13 +5,13 @@ import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
 import '../view_model/onboarding_controller.dart';
 
-const _defaultCycle = <ShiftKind>[
-  ShiftKind.day,
-  ShiftKind.day,
-  ShiftKind.night,
-  ShiftKind.night,
-  ShiftKind.off,
-  ShiftKind.off,
+const _defaultCycle = <Shift>[
+  Shift.day,
+  Shift.day,
+  Shift.night,
+  Shift.night,
+  Shift.off,
+  Shift.off,
 ];
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -230,11 +230,11 @@ class _HeroIllustration extends StatelessWidget {
   Color _colorFor(String code) {
     switch (code) {
       case 'D':
-        return ShiftKind.day.solid;
+        return Shift.day.solid;
       case 'N':
-        return ShiftKind.night.solid;
+        return Shift.night.solid;
       case 'O':
-        return ShiftKind.off.solid;
+        return Shift.off.solid;
       default:
         return AppColors.text5;
     }
@@ -313,7 +313,7 @@ class _ShiftInfoStep extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            '6가지 근무로 패턴을 만들 수 있어요',
+            '5가지 기본 근무로 패턴을 만들 수 있어요',
             style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 13.5,
@@ -326,9 +326,10 @@ class _ShiftInfoStep extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.zero,
-              itemCount: ShiftKind.values.length,
+              itemCount: Shift.baseShifts.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (_, i) => _ShiftInfoCard(shift: ShiftKind.values[i]),
+              itemBuilder: (_, i) =>
+                  _ShiftInfoCard(shift: Shift.baseShifts[i]),
             ),
           ),
         ],
@@ -340,7 +341,7 @@ class _ShiftInfoStep extends StatelessWidget {
 class _ShiftInfoCard extends StatelessWidget {
   const _ShiftInfoCard({required this.shift});
 
-  final ShiftKind shift;
+  final Shift shift;
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +413,7 @@ class _ShiftInfoCard extends StatelessWidget {
 class _PatternPreviewStep extends StatelessWidget {
   const _PatternPreviewStep({required this.cycle});
 
-  final List<ShiftKind> cycle;
+  final List<Shift> cycle;
 
   @override
   Widget build(BuildContext context) {
@@ -474,7 +475,7 @@ class _PatternPreviewStep extends StatelessWidget {
 class _CycleRow extends StatelessWidget {
   const _CycleRow({required this.index, required this.shift});
   final int index;
-  final ShiftKind shift;
+  final Shift shift;
 
   @override
   Widget build(BuildContext context) {

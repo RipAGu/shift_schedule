@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../features/calendar/ui/app_tab_bar.dart';
 import '../features/calendar/ui/calendar_page.dart';
 import '../features/pattern/ui/pattern_page.dart';
+import '../features/shift_types/ui/shift_types_page.dart';
 import '../features/stats/ui/stats_page.dart';
-import 'tokens.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -31,7 +31,7 @@ class _HomeShellState extends State<HomeShell> {
             CalendarPage(),
             PatternPage(),
             StatsPage(),
-            _PlaceholderTab(title: '설정'),
+            ShiftTypesPage(),
           ],
         ),
         Positioned(
@@ -41,29 +41,6 @@ class _HomeShellState extends State<HomeShell> {
           child: AppTabBar(active: _active, onTap: _setTab),
         ),
       ],
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: Center(
-        child: Text(
-          '$title 화면 (준비 중)',
-          style: const TextStyle(
-            fontFamily: 'Pretendard',
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppColors.text4,
-          ),
-        ),
-      ),
     );
   }
 }

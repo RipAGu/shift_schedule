@@ -1,70 +1,48 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sample/core/date_key.dart';
-import 'package:sample/core/shift.dart';
 import 'package:sample/features/calendar/domain/shift_calculator.dart';
 
 void main() {
-  group('shiftFor', () {
+  group('shiftKeyFor', () {
     test('cycles correctly from anchor', () {
       final anchor = DateTime(2026, 4, 27);
-      const cycle = [
-        ShiftKind.day,
-        ShiftKind.day,
-        ShiftKind.night,
-        ShiftKind.night,
-        ShiftKind.off,
-        ShiftKind.off,
-      ];
+      const cycle = ['day', 'day', 'night', 'night', 'off', 'off'];
 
-      expect(shiftFor(date: anchor, cycle: cycle, anchorDate: anchor),
-          ShiftKind.day);
+      expect(shiftKeyFor(date: anchor, cycle: cycle, anchorDate: anchor),
+          'day');
       expect(
-          shiftFor(
+          shiftKeyFor(
               date: anchor.add(const Duration(days: 2)),
               cycle: cycle,
               anchorDate: anchor),
-          ShiftKind.night);
+          'night');
       expect(
-          shiftFor(
+          shiftKeyFor(
               date: anchor.add(const Duration(days: 6)),
               cycle: cycle,
               anchorDate: anchor),
-          ShiftKind.day);
+          'day');
     });
 
     test('handles dates before the anchor', () {
       final anchor = DateTime(2026, 4, 27);
-      const cycle = [
-        ShiftKind.day,
-        ShiftKind.day,
-        ShiftKind.night,
-        ShiftKind.night,
-        ShiftKind.off,
-        ShiftKind.off,
-      ];
+      const cycle = ['day', 'day', 'night', 'night', 'off', 'off'];
       // 1 day before anchor = index 5 (last of cycle) = off
       expect(
-          shiftFor(
+          shiftKeyFor(
               date: anchor.subtract(const Duration(days: 1)),
               cycle: cycle,
               anchorDate: anchor),
-          ShiftKind.off);
+          'off');
     });
   });
 
-  group('monthStats', () {
+  group('monthStatsByKey', () {
     test('counts every day of the month', () {
       final anchor = DateTime(2026, 4, 27);
-      const cycle = [
-        ShiftKind.day,
-        ShiftKind.day,
-        ShiftKind.night,
-        ShiftKind.night,
-        ShiftKind.off,
-        ShiftKind.off,
-      ];
+      const cycle = ['day', 'day', 'night', 'night', 'off', 'off'];
 
-      final stats = monthStats(
+      final stats = monthStatsByKey(
         year: 2026,
         month: 5,
         cycle: cycle,
@@ -78,17 +56,17 @@ void main() {
 
     test('overrides take precedence', () {
       final anchor = DateTime(2026, 4, 27);
-      const cycle = [ShiftKind.day, ShiftKind.day, ShiftKind.night];
+      const cycle = ['day', 'day', 'night'];
 
-      final stats = monthStats(
+      final stats = monthStatsByKey(
         year: 2026,
         month: 5,
         cycle: cycle,
         anchorDate: anchor,
-        overrides: {toDateKey(DateTime(2026, 5, 1)): ShiftKind.vacation},
+        overrides: {toDateKey(DateTime(2026, 5, 1)): 'holiday'},
       );
 
-      expect(stats[ShiftKind.vacation], 1);
+      expect(stats['holiday'], 1);
     });
   });
 

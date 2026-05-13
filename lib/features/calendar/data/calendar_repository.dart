@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/date_key.dart';
-import '../../../core/shift.dart';
 import '../domain/note.dart';
 import 'calendar_storage.dart';
 
@@ -22,17 +21,22 @@ class CalendarRepository {
 
   final CalendarStorage _storage;
 
-  List<ShiftKind> getCycle() => _storage.readCycle();
+  List<String> getCycle() => _storage.readCycle();
   DateTime getAnchorDate() => _storage.readAnchorDate();
   Map<DateKey, Note> getAllNotes() => _storage.readAllNotes();
-  Map<DateKey, ShiftKind> getAllOverrides() => _storage.readAllOverrides();
+
+  Map<DateKey, String> getAllOverrides() => _storage.readAllOverrides();
 
   Future<void> putNote(DateKey key, Note note) =>
       _storage.notes.put(key, note);
   Future<void> deleteNote(DateKey key) => _storage.notes.delete(key);
-  Future<void> putOverride(DateKey key, ShiftKind shift) =>
-      _storage.overrides.put(key, shift.name);
-  Future<void> deleteOverride(DateKey key) => _storage.overrides.delete(key);
-  Future<void> putCycle(List<ShiftKind> cycle) => _storage.writeCycle(cycle);
+
+  Future<void> putOverride(DateKey key, String shiftKey) =>
+      _storage.writeOverride(key, shiftKey);
+
+  Future<void> deleteOverride(DateKey key) => _storage.deleteOverride(key);
+
+  Future<void> putCycle(List<String> cycle) => _storage.writeCycle(cycle);
+
   Future<void> putAnchorDate(DateTime date) => _storage.writeAnchorDate(date);
 }

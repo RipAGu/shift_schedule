@@ -5,6 +5,7 @@ import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
 import '../../calendar/domain/shift_calculator.dart';
 import '../../calendar/view_model/calendar_view_model.dart';
+import '../../shift_types/view_model/shift_types_view_model.dart';
 
 class StatsPage extends ConsumerWidget {
   const StatsPage({super.key});
@@ -12,8 +13,9 @@ class StatsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(calendarViewModelProvider);
+    final customs = ref.watch(shiftTypesViewModelProvider);
     final focused = state.focusedMonth;
-    final stats = monthStats(
+    final stats = monthStatsByKey(
       year: focused.year,
       month: focused.month,
       cycle: state.cycle,
@@ -23,26 +25,25 @@ class StatsPage extends ConsumerWidget {
 
     final lastDay = DateTime(focused.year, focused.month + 1, 0).day;
     final workDays =
-        (stats[ShiftKind.day] ?? 0) + (stats[ShiftKind.night] ?? 0);
-    final offDays = (stats[ShiftKind.off] ?? 0) +
-        (stats[ShiftKind.holiday] ?? 0) +
-        (stats[ShiftKind.vacation] ?? 0) +
-        (stats[ShiftKind.compOff] ?? 0);
+        (stats[Shift.day.key] ?? 0) + (stats[Shift.night.key] ?? 0);
+    // 휴무(isOff:true) 기본 2종 — 비번/휴무 — 그리고 커스텀은 일하는 날로 간주.
+    final offDays =
+        (stats[Shift.off.key] ?? 0) + (stats[Shift.holiday.key] ?? 0);
     final totalHours =
-        ((stats[ShiftKind.day] ?? 0) + (stats[ShiftKind.night] ?? 0)) * 12;
+        ((stats[Shift.day.key] ?? 0) + (stats[Shift.night.key] ?? 0)) * 12;
 
     final trend = <_TrendItem>[];
     for (var i = -5; i <= 0; i++) {
       final d = DateTime(focused.year, focused.month + i, 1);
-      final ms = monthStats(
+      final ms = monthStatsByKey(
         year: d.year,
         month: d.month,
         cycle: state.cycle,
         anchorDate: state.anchorDate,
         overrides: state.overrides,
       );
-      final dCount = ms[ShiftKind.day] ?? 0;
-      final nCount = ms[ShiftKind.night] ?? 0;
+      final dCount = ms[Shift.day.key] ?? 0;
+      final nCount = ms[Shift.night.key] ?? 0;
       trend.add(_TrendItem(
         label: '${d.month}월',
         day: dCount,
@@ -71,6 +72,7 @@ class StatsPage extends ConsumerWidget {
                   children: [
                     _HeroCard(
                       stats: stats,
+                      customs: customs,
                       workDays: workDays,
                       totalDays: lastDay,
                     ),
@@ -154,11 +156,13 @@ class _Header extends StatelessWidget {
 class _HeroCard extends StatelessWidget {
   const _HeroCard({
     required this.stats,
+    required this.customs,
     required this.workDays,
     required this.totalDays,
   });
 
-  final Map<ShiftKind, int> stats;
+  final Map<String, int> stats;
+  final List<CustomShift> customs;
   final int workDays;
   final int totalDays;
 
@@ -230,9 +234,10 @@ class _HeroCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          _StackedBar(stats: stats, totalDays: totalDays),
+          _StackedBar(
+              stats: stats, customs: customs, totalDays: totalDays),
           const SizedBox(height: 14),
-          _LegendGrid(stats: stats),
+          _LegendGrid(stats: stats, customs: customs),
         ],
       ),
     );
@@ -240,12 +245,19 @@ class _HeroCard extends StatelessWidget {
 }
 
 class _StackedBar extends StatelessWidget {
-  const _StackedBar({required this.stats, required this.totalDays});
-  final Map<ShiftKind, int> stats;
+  const _StackedBar({
+    required this.stats,
+    required this.customs,
+    required this.totalDays,
+  });
+
+  final Map<String, int> stats;
+  final List<CustomShift> customs;
   final int totalDays;
 
   @override
   Widget build(BuildContext context) {
+    final shifts = allShifts(customs);
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
       child: Container(
@@ -253,33 +265,37 @@ class _StackedBar extends StatelessWidget {
         color: AppColors.bg,
         child: Row(
           children: [
-            for (final k in ShiftKind.values)
-              if ((stats[k] ?? 0) > 0)
+            for (final s in shifts)
+              if ((stats[s.key] ?? 0) > 0)
                 Expanded(
-                  flex: stats[k]!,
-                  child: Container(color: k.solid),
+                  flex: stats[s.key]!,
+                  child: Container(color: s.solid),
                 ),
-            // remaining unaccounted space (shouldn't happen, but safe)
             if (_remaining(stats, totalDays) > 0)
-              Expanded(flex: _remaining(stats, totalDays), child: const SizedBox()),
+              Expanded(
+                  flex: _remaining(stats, totalDays),
+                  child: const SizedBox()),
           ],
         ),
       ),
     );
   }
 
-  int _remaining(Map<ShiftKind, int> s, int total) {
+  int _remaining(Map<String, int> s, int total) {
     final used = s.values.fold<int>(0, (a, b) => a + b);
     return (total - used).clamp(0, total);
   }
 }
 
 class _LegendGrid extends StatelessWidget {
-  const _LegendGrid({required this.stats});
-  final Map<ShiftKind, int> stats;
+  const _LegendGrid({required this.stats, required this.customs});
+
+  final Map<String, int> stats;
+  final List<CustomShift> customs;
 
   @override
   Widget build(BuildContext context) {
+    final shifts = allShifts(customs);
     return GridView.count(
       crossAxisCount: 3,
       mainAxisSpacing: 10,
@@ -288,16 +304,16 @@ class _LegendGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        for (final k in ShiftKind.values)
-          _LegendItem(kind: k, count: stats[k] ?? 0),
+        for (final s in shifts) _LegendItem(shift: s, count: stats[s.key] ?? 0),
       ],
     );
   }
 }
 
 class _LegendItem extends StatelessWidget {
-  const _LegendItem({required this.kind, required this.count});
-  final ShiftKind kind;
+  const _LegendItem({required this.shift, required this.count});
+
+  final Shift shift;
   final int count;
 
   @override
@@ -309,7 +325,7 @@ class _LegendItem extends StatelessWidget {
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: kind.solid,
+            color: shift.solid,
             shape: BoxShape.circle,
           ),
         ),
@@ -347,7 +363,7 @@ class _LegendItem extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                kind.name,
+                shift.name,
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 11,
@@ -370,14 +386,14 @@ class _MetricsRow extends StatelessWidget {
     required this.offDays,
   });
 
-  final Map<ShiftKind, int> stats;
+  final Map<String, int> stats;
   final int totalHours;
   final int offDays;
 
   @override
   Widget build(BuildContext context) {
-    final dHours = (stats[ShiftKind.day] ?? 0) * 12;
-    final nHours = (stats[ShiftKind.night] ?? 0) * 12;
+    final dHours = (stats[Shift.day.key] ?? 0) * 12;
+    final nHours = (stats[Shift.night.key] ?? 0) * 12;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -601,11 +617,11 @@ class _TrendBar extends StatelessWidget {
             children: [
               Container(
                 height: 100 * nRatio,
-                color: ShiftKind.night.solid.withValues(alpha: opacity),
+                color: Shift.night.solid.withValues(alpha: opacity),
               ),
               Container(
                 height: 100 * dRatio,
-                color: ShiftKind.day.solid.withValues(alpha: opacity),
+                color: Shift.day.solid.withValues(alpha: opacity),
               ),
             ],
           ),

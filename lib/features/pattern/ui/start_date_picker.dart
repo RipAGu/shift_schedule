@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
+import '../../shift_types/view_model/shift_types_view_model.dart';
 
 const _weekdayShort = ['일', '월', '화', '수', '목', '금', '토'];
 
 Future<DateTime?> showStartDatePicker(
   BuildContext context, {
   required DateTime initial,
-  required List<ShiftKind> cycle,
+      required List<String> cycle,
 }) {
   return showModalBottomSheet<DateTime>(
     context: context,
@@ -22,7 +24,7 @@ Future<DateTime?> showStartDatePicker(
 class _StartDatePicker extends StatefulWidget {
   const _StartDatePicker({required this.initial, required this.cycle});
   final DateTime initial;
-  final List<ShiftKind> cycle;
+  final List<String> cycle;
 
   @override
   State<_StartDatePicker> createState() => _StartDatePickerState();
@@ -379,14 +381,15 @@ class _Cell extends StatelessWidget {
   }
 }
 
-class _PreviewStrip extends StatelessWidget {
+class _PreviewStrip extends ConsumerWidget {
   const _PreviewStrip({required this.start, required this.cycle});
 
   final DateTime start;
-  final List<ShiftKind> cycle;
+  final List<String> cycle;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final customs = ref.watch(shiftTypesViewModelProvider);
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
@@ -415,8 +418,9 @@ class _PreviewStrip extends StatelessWidget {
                   child: _PreviewCell(
                     date: start.add(Duration(days: i)),
                     shift: cycle.isEmpty
-                        ? ShiftKind.off
-                        : cycle[i % cycle.length],
+                        ? Shift.off
+                        : shiftByKeyOrFallback(
+                        cycle[i % cycle.length], customs),
                   ),
                 ),
                 if (i != 6) const SizedBox(width: 4),
@@ -432,7 +436,7 @@ class _PreviewStrip extends StatelessWidget {
 class _PreviewCell extends StatelessWidget {
   const _PreviewCell({required this.date, required this.shift});
   final DateTime date;
-  final ShiftKind shift;
+  final Shift shift;
 
   @override
   Widget build(BuildContext context) {

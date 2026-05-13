@@ -8,10 +8,19 @@ private let payloadKey = "payload"
 
 // MARK: - Payload model
 
+struct ShiftDef: Codable {
+    let key: String
+    let short: String
+    let name: String
+    let solid: String  // "#RRGGBB"
+    let soft: String
+}
+
 struct WidgetPayload: Codable {
-    let anchorDate: String           // "YYYY-MM-DD"
-    let cycle: [String]              // ["day", "day", "night", ...]
-    let overrides: [String: String]  // { "YYYY-MM-DD": "night" }
+    let anchorDate: String              // "YYYY-MM-DD"
+    let cycle: [String]                 // ["day", "day", "night", ...]
+    let overrides: [String: String]     // { "YYYY-MM-DD": "night" }
+    let shifts: [String: ShiftDef]?     // optional — Flutter 가 매번 같이 전송
 }
 
 // MARK: - Shift visuals
@@ -24,26 +33,42 @@ private struct Shift {
     let soft: Color
 }
 
-private let shifts: [String: Shift] = [
+// Flutter 에서 shifts 사전을 보내주지 않은 경우(이전 버전 호환)를 위한 폴백.
+private let fallbackShifts: [String: Shift] = [
     "day": Shift(code: "day", short: "주", name: "주간",
                  solid: Color(red: 0.192, green: 0.510, blue: 0.965),
                  soft:  Color(red: 0.910, green: 0.949, blue: 0.996)),
     "night": Shift(code: "night", short: "야", name: "야간",
                  solid: Color(red: 0.353, green: 0.310, blue: 0.812),
                  soft:  Color(red: 0.929, green: 0.922, blue: 0.984)),
+    "duty": Shift(code: "duty", short: "당", name: "당직",
+                 solid: Color(red: 0.941, green: 0.267, blue: 0.322),
+                 soft:  Color(red: 0.988, green: 0.894, blue: 0.902)),
     "off": Shift(code: "off", short: "비", name: "비번",
                  solid: Color(red: 0.545, green: 0.584, blue: 0.631),
                  soft:  Color(red: 0.925, green: 0.933, blue: 0.945)),
     "holiday": Shift(code: "holiday", short: "휴", name: "휴무",
                  solid: Color(red: 0.969, green: 0.498, blue: 0.212),
                  soft:  Color(red: 0.996, green: 0.933, blue: 0.875)),
-    "vacation": Shift(code: "vacation", short: "연", name: "연차",
-                 solid: Color(red: 0.122, green: 0.678, blue: 0.416),
-                 soft:  Color(red: 0.875, green: 0.949, blue: 0.902)),
-    "compOff": Shift(code: "compOff", short: "대", name: "대체휴무",
-                 solid: Color(red: 0.078, green: 0.710, blue: 0.776),
-                 soft:  Color(red: 0.839, green: 0.941, blue: 0.957)),
 ]
+
+private func hexColor(_ hex: String) -> Color {
+    var s = hex
+    if s.hasPrefix("#") { s.removeFirst() }
+    guard s.count == 6, let v = UInt32(s, radix: 16) else { return Color.gray }
+    let r = Double((v >> 16) & 0xFF) / 255.0
+    let g = Double((v >> 8) & 0xFF) / 255.0
+    let b = Double(v & 0xFF) / 255.0
+    return Color(red: r, green: g, blue: b)
+}
+
+private func resolveShift(_ code: String, payload: WidgetPayload?) -> Shift? {
+    if let p = payload, let def = p.shifts?[code] {
+        return Shift(code: def.key, short: def.short, name: def.name,
+                     solid: hexColor(def.solid), soft: hexColor(def.soft))
+    }
+    return fallbackShifts[code]
+}
 
 private let bgColor = Color(red: 0.949, green: 0.957, blue: 0.965)   // #F2F4F6
 private let textPrimary = Color(red: 0.098, green: 0.122, blue: 0.157) // #191F28
@@ -148,7 +173,7 @@ struct ShiftCalendarWidgetView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(textSecondary)
                 Spacer()
-                LegendRow(shiftCodes: inMonthShifts)
+                LegendRow(shiftCodes: inMonthShifts, payload: entry.payload)
             }
             .padding(.bottom, 8)
 
@@ -174,7 +199,8 @@ struct ShiftCalendarWidgetView: View {
                         CellView(day: day,
                                  inMonth: inMonth,
                                  isToday: isToday,
-                                 shiftCode: entry.payload != nil ? shiftCode : nil)
+                                 shiftCode: entry.payload != nil ? shiftCode : nil,
+                                 payload: entry.payload)
                     }
                 }
                 if row < 5 { Spacer(minLength: 2) }
@@ -194,14 +220,19 @@ struct ShiftCalendarWidgetView: View {
 
 private struct LegendRow: View {
     let shiftCodes: Set<String>
+    let payload: WidgetPayload?
 
     var body: some View {
-        // 표시 순서: ShiftKind.values 순(주간/야간/비번/휴무/연차/대체휴무)
-        let order = ["day", "night", "off", "holiday", "vacation", "compOff"]
-        let visible = order.filter { shiftCodes.contains($0) }
+        // 표시 순서: base 우선(주간/야간/당직/비번/휴무), 그 다음 커스텀.
+        let baseOrder = ["day", "night", "duty", "off", "holiday"]
+        let baseVisible = baseOrder.filter { shiftCodes.contains($0) }
+        let customVisible = shiftCodes
+            .filter { !baseOrder.contains($0) }
+            .sorted()
+        let visible = baseVisible + customVisible
         HStack(spacing: 6) {
             ForEach(visible, id: \.self) { code in
-                if let s = shifts[code] {
+                if let s = resolveShift(code, payload: payload) {
                     HStack(spacing: 3) {
                         Circle()
                             .fill(s.solid)
@@ -223,12 +254,13 @@ private struct CellView: View {
     let inMonth: Bool
     let isToday: Bool
     let shiftCode: String?
+    let payload: WidgetPayload?
 
     var body: some View {
         let cal = Calendar(identifier: .gregorian)
         let dayNum = cal.component(.day, from: day)
         let weekday = cal.component(.weekday, from: day) - 1
-        let shift = shiftCode.flatMap { shifts[$0] }
+        let shift = shiftCode.flatMap { resolveShift($0, payload: payload) }
 
         let dayColor: Color = {
             if isToday { return .white }

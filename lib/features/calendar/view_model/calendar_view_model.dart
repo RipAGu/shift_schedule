@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/date_key.dart';
-import '../../../core/shift.dart';
 import '../data/calendar_repository.dart';
 import '../domain/note.dart';
 import '../domain/shift_calculator.dart';
@@ -43,7 +42,7 @@ class CalendarViewModel extends _$CalendarViewModel {
     state = state.copyWith(selectedDay: day);
   }
 
-  Future<void> savePattern(List<ShiftKind> cycle) async {
+  Future<void> savePattern(List<String> cycle) async {
     if (cycle.isEmpty) return;
     final repo = ref.read(calendarRepositoryProvider);
     await repo.putCycle(cycle);
@@ -59,19 +58,19 @@ class CalendarViewModel extends _$CalendarViewModel {
 
   Future<void> saveShiftOverride({
     required DateTime day,
-    required ShiftKind shift,
+    required String shiftKey,
   }) async {
     final key = toDateKey(day);
     final repo = ref.read(calendarRepositoryProvider);
-    final patternShift = shiftFor(
+    final patternKey = shiftKeyFor(
       date: day,
       cycle: state.cycle,
       anchorDate: state.anchorDate,
     );
-    if (shift == patternShift) {
+    if (shiftKey == patternKey) {
       await repo.deleteOverride(key);
     } else {
-      await repo.putOverride(key, shift);
+      await repo.putOverride(key, shiftKey);
     }
     state = state.copyWith(overrides: repo.getAllOverrides());
   }
@@ -80,7 +79,7 @@ class CalendarViewModel extends _$CalendarViewModel {
     required DateTime day,
     String? emoji,
     required String memo,
-    required ShiftKind shift,
+    required String shiftKey,
   }) async {
     final key = toDateKey(day);
     final repo = ref.read(calendarRepositoryProvider);
@@ -92,15 +91,15 @@ class CalendarViewModel extends _$CalendarViewModel {
       await repo.deleteNote(key);
     }
 
-    final patternShift = shiftFor(
+    final patternKey = shiftKeyFor(
       date: day,
       cycle: state.cycle,
       anchorDate: state.anchorDate,
     );
-    if (shift == patternShift) {
+    if (shiftKey == patternKey) {
       await repo.deleteOverride(key);
     } else {
-      await repo.putOverride(key, shift);
+      await repo.putOverride(key, shiftKey);
     }
 
     state = state.copyWith(

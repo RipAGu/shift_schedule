@@ -4,14 +4,17 @@ import '../../../app/tokens.dart';
 import '../../../core/shift.dart';
 
 class StatsStrip extends StatelessWidget {
-  const StatsStrip({super.key, required this.stats});
+  const StatsStrip({super.key, required this.stats, required this.customs});
 
-  final Map<ShiftKind, int> stats;
+  final Map<String, int> stats;
+  final List<CustomShift> customs;
 
   @override
   Widget build(BuildContext context) {
-    final workDays = (stats[ShiftKind.day] ?? 0) + (stats[ShiftKind.night] ?? 0);
-    const visible = [ShiftKind.day, ShiftKind.night, ShiftKind.off];
+    final workDays =
+        (stats[Shift.day.key] ?? 0) + (stats[Shift.night.key] ?? 0);
+    // 캘린더 하단 요약: 주/야/비 3개 고정 표시 (디자인 유지).
+    const visible = <Shift>[Shift.day, Shift.night, Shift.off];
 
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 8, 14, 78),
@@ -67,9 +70,9 @@ class StatsStrip extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final k in visible) ...[
-                _StatItem(kind: k, count: stats[k] ?? 0),
-                if (k != visible.last) const SizedBox(width: 10),
+              for (final s in visible) ...[
+                _StatItem(shift: s, count: stats[s.key] ?? 0),
+                if (s != visible.last) const SizedBox(width: 10),
               ],
             ],
           ),
@@ -80,9 +83,9 @@ class StatsStrip extends StatelessWidget {
 }
 
 class _StatItem extends StatelessWidget {
-  const _StatItem({required this.kind, required this.count});
+  const _StatItem({required this.shift, required this.count});
 
-  final ShiftKind kind;
+  final Shift shift;
   final int count;
 
   @override
@@ -98,7 +101,7 @@ class _StatItem extends StatelessWidget {
               fontFamily: 'Pretendard',
               fontSize: 18,
               fontWeight: FontWeight.w800,
-              color: kind.solid,
+              color: shift.solid,
               letterSpacing: -0.4,
               height: 1,
               fontFeatures: tabularNumbers,
@@ -106,7 +109,7 @@ class _StatItem extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           Text(
-            kind.name,
+            shift.name,
             style: const TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 10.5,
