@@ -28,12 +28,27 @@ class AppTabBar extends StatelessWidget {
               ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _Item(icon: Icons.calendar_today_outlined, label: '캘린더', tab: AppTab.calendar, active: active, onTap: onTap),
-                _Item(icon: Icons.refresh, label: '패턴', tab: AppTab.pattern, active: active, onTap: onTap),
-                _Item(icon: Icons.bar_chart, label: '통계', tab: AppTab.stats, active: active, onTap: onTap),
-                _Item(icon: Icons.settings_outlined, label: '설정', tab: AppTab.settings, active: active, onTap: onTap),
+                Expanded(child: _Item(icon: Icons.calendar_today_outlined,
+                    label: '캘린더',
+                    tab: AppTab.calendar,
+                    active: active,
+                    onTap: onTap)),
+                Expanded(child: _Item(icon: Icons.refresh,
+                    label: '패턴',
+                    tab: AppTab.pattern,
+                    active: active,
+                    onTap: onTap)),
+                Expanded(child: _Item(icon: Icons.bar_chart,
+                    label: '통계',
+                    tab: AppTab.stats,
+                    active: active,
+                    onTap: onTap)),
+                Expanded(child: _Item(icon: Icons.settings_outlined,
+                    label: '설정',
+                    tab: AppTab.settings,
+                    active: active,
+                    onTap: onTap)),
               ],
             ),
           ),
@@ -62,11 +77,10 @@ class _Item extends StatelessWidget {
   Widget build(BuildContext context) {
     final on = active == tab;
     final color = on ? AppColors.blue : AppColors.text5;
-    return InkResponse(
+    return InkWell(
       onTap: onTap == null ? null : () => onTap!(tab),
-      radius: 36,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsets.symmetric(vertical: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
