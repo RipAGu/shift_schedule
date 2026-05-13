@@ -301,7 +301,7 @@ class _ShiftInfoStep extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            '이런 근무들이\n있어요',
+            '근무 종류는\n자유롭게 바꿔써요',
             style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 24,
@@ -313,13 +313,14 @@ class _ShiftInfoStep extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            '5가지 기본 근무로 패턴을 만들 수 있어요',
+            '기본 5종으로 시작하고, 이름·색상·시간을 바꾸거나\n새 근무를 언제든 추가할 수 있어요',
             style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
               color: AppColors.text4,
               letterSpacing: -0.2,
+              height: 1.5,
             ),
           ),
           const SizedBox(height: 22),

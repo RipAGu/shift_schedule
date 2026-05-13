@@ -54,21 +54,6 @@ class CalendarStorage {
       final start = DateTime(today.year, today.month, today.day);
       await cycle.put(_anchorKey, toDateKey(start));
     }
-    if (notes.isEmpty) {
-      final today = DateTime.now();
-      DateTime relative(int days) =>
-          DateTime(today.year, today.month, today.day + days);
-      final samples = <int, Note>{
-        -4: Note(emoji: '💪', memo: '인계 깔끔하게'),
-        1: Note(emoji: '🎉', memo: '팀 회식 19시'),
-        4: Note(emoji: '😴', memo: '병원 예약 14:30'),
-        10: Note(emoji: '🏃', memo: '러닝 모임'),
-        16: Note(emoji: '☕', memo: '카페에서 인계 받기'),
-      };
-      for (final entry in samples.entries) {
-        await notes.put(toDateKey(relative(entry.key)), entry.value);
-      }
-    }
   }
 
   List<String> readCycle() {
