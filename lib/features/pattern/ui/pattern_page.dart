@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/tokens.dart';
@@ -100,10 +102,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
                 ),
                 onReorder: _onReorder,
                 proxyDecorator: (child, index, animation) {
-                  return Material(
-                    color: Colors.transparent,
-                    child: child,
-                  );
+                  return _DragProxy(animation: animation, child: child);
                 },
                 children: [
                   for (var i = 0; i < _draft.length; i++)
@@ -243,7 +242,7 @@ class _PhaseRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ReorderableDragStartListener(
+          _LongPressDragStartListener(
             index: index,
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -592,6 +591,74 @@ class _BottomAction extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DragProxy extends StatefulWidget {
+  const _DragProxy({required this.animation, required this.child});
+
+  final Animation<double> animation;
+  final Widget child;
+
+  @override
+  State<_DragProxy> createState() => _DragProxyState();
+}
+
+class _DragProxyState extends State<_DragProxy> {
+  @override
+  void initState() {
+    super.initState();
+    HapticFeedback.mediumImpact();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: widget.animation,
+      builder: (context, _) {
+        final t = Curves.easeOut.transform(widget.animation.value);
+        return Transform.scale(
+          scale: 1 + 0.03 * t,
+          child: Material(
+            color: Colors.transparent,
+            shadowColor: Colors.transparent,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.18 * t),
+                    offset: Offset(0, 8 * t),
+                    blurRadius: 24 * t,
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withValues(alpha: 0.10 * t),
+                    offset: Offset(0, 2 * t),
+                    blurRadius: 6 * t,
+                  ),
+                ],
+              ),
+              child: widget.child,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LongPressDragStartListener extends ReorderableDragStartListener {
+  const _LongPressDragStartListener({
+    required super.index,
+    required super.child,
+  }) : super(enabled: true);
+
+  @override
+  MultiDragGestureRecognizer createRecognizer() {
+    return DelayedMultiDragGestureRecognizer(
+      delay: const Duration(milliseconds: 300),
+      debugOwner: this,
     );
   }
 }
