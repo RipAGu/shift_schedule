@@ -119,7 +119,7 @@ class _WelcomeStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: const [
           Text(
-            '교대근무 캘린더',
+            '마이근무',
             style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 14,

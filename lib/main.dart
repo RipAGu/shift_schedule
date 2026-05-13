@@ -47,7 +47,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
     return MaterialApp.router(
-      title: '교대근무 캘린더',
+      title: '마이근무',
       theme: lightTheme,
       routerConfig: router,
     );

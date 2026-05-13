@@ -280,7 +280,7 @@ struct ShiftCalendarWidget: Widget {
                     .background(bgColor)
             }
         }
-        .configurationDisplayName("교대근무 캘린더")
+        .configurationDisplayName("마이근무")
         .description("이번 달 근무 일정을 한눈에 봐요")
         .supportedFamilies([.systemLarge])  // 4x4
     }

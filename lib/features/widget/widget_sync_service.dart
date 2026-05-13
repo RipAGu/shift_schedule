@@ -9,6 +9,7 @@ import '../calendar/view_model/calendar_state.dart';
 
 const String kHomeWidgetAppGroup = 'group.com.ripagu.shiftapp';
 const String kHomeWidgetiOSName = 'ShiftCalendarWidget';
+const String kHomeWidgetAndroidName = 'ShiftCalendarWidgetProvider';
 const String _kPayloadKey = 'payload';
 
 class WidgetSyncService {
@@ -54,7 +55,10 @@ class WidgetSyncService {
 
       final json = jsonEncode(payload);
       await HomeWidget.saveWidgetData(_kPayloadKey, json);
-      await HomeWidget.updateWidget(iOSName: kHomeWidgetiOSName);
+      await HomeWidget.updateWidget(
+        iOSName: kHomeWidgetiOSName,
+        androidName: kHomeWidgetAndroidName,
+      );
 
       dev.log(
         'Synced widget — cycle:${state.cycle.length}, '
