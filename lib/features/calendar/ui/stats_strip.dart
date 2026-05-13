@@ -11,10 +11,26 @@ class StatsStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final workDays =
-        (stats[Shift.day.key] ?? 0) + (stats[Shift.night.key] ?? 0);
-    // 캘린더 하단 요약: 주/야/비 3개 고정 표시 (디자인 유지).
-    const visible = <Shift>[Shift.day, Shift.night, Shift.off];
+    // 근무하는 날 = isOff 가 아닌 모든 근무의 합.
+    var workDays = 0;
+    for (final c in customs) {
+      if (!c.isOff) workDays += stats[c.id] ?? 0;
+    }
+    // 우측 요약: '주간', '야간', '비번' 키에 해당하는 근무를 우선 노출.
+    // 사용자가 base 를 삭제했다면 customs 첫 3개로 폴백.
+    final preferredKeys = ['day', 'night', 'off'];
+    final visible = <Shift>[];
+    for (final key in preferredKeys) {
+      final s = shiftByKey(key, customs);
+      if (s != null) visible.add(s);
+    }
+    if (visible.length < 3) {
+      for (final c in customs) {
+        if (visible.length >= 3) break;
+        final s = c.toShift();
+        if (!visible.any((v) => v.key == s.key)) visible.add(s);
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.fromLTRB(14, 8, 14, 78),
@@ -70,9 +86,9 @@ class StatsStrip extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final s in visible) ...[
-                _StatItem(shift: s, count: stats[s.key] ?? 0),
-                if (s != visible.last) const SizedBox(width: 10),
+              for (var i = 0; i < visible.length; i++) ...[
+                _StatItem(shift: visible[i], count: stats[visible[i].key] ?? 0),
+                if (i != visible.length - 1) const SizedBox(width: 10),
               ],
             ],
           ),

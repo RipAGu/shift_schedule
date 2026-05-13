@@ -32,12 +32,17 @@ class WidgetSyncService {
       // Swift 위젯이 색상 hex 와 표시 정보를 모두 알 수 있도록 함께 전송.
       // 알려진 base 키는 Swift 의 기본 매핑을 사용하지만, 커스텀 근무도
       // 같은 형식의 사전을 통해 폴백 가능.
+      // 저장소의 모든 근무(=기본 5종 시드 + 사용자 추가)를 전송.
+      // 비어있다면 정적 fallback 5종을 보내 위젯이 아예 빈 상태가 되는 걸 막음.
       final shifts = <String, Map<String, dynamic>>{};
-      for (final s in Shift.baseShifts) {
-        shifts[s.key] = _shiftJson(s);
-      }
-      for (final c in customs) {
-        shifts[c.key] = _shiftJson(c.toShift());
+      if (customs.isEmpty) {
+        for (final s in Shift.baseShifts) {
+          shifts[s.key] = _shiftJson(s);
+        }
+      } else {
+        for (final c in customs) {
+          shifts[c.key] = _shiftJson(c.toShift());
+        }
       }
 
       final payload = <String, dynamic>{

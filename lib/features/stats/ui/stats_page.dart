@@ -24,13 +24,21 @@ class StatsPage extends ConsumerWidget {
     );
 
     final lastDay = DateTime(focused.year, focused.month + 1, 0).day;
-    final workDays =
-        (stats[Shift.day.key] ?? 0) + (stats[Shift.night.key] ?? 0);
-    // 휴무(isOff:true) 기본 2종 — 비번/휴무 — 그리고 커스텀은 일하는 날로 간주.
-    final offDays =
-        (stats[Shift.off.key] ?? 0) + (stats[Shift.holiday.key] ?? 0);
-    final totalHours =
-        ((stats[Shift.day.key] ?? 0) + (stats[Shift.night.key] ?? 0)) * 12;
+    // 근무 = isOff:false, 휴무 = isOff:true 로 분류.
+    var workDays = 0;
+    var offDays = 0;
+    var totalMinutes = 0;
+    for (final c in customs) {
+      final cnt = stats[c.id] ?? 0;
+      if (cnt == 0) continue;
+      if (c.isOff) {
+        offDays += cnt;
+      } else {
+        workDays += cnt;
+        totalMinutes += cnt * durationMinutes(c.startMinutes, c.endMinutes);
+      }
+    }
+    final totalHours = totalMinutes ~/ 60;
 
     final trend = <_TrendItem>[];
     for (var i = -5; i <= 0; i++) {
@@ -78,7 +86,6 @@ class StatsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 10),
                     _MetricsRow(
-                      stats: stats,
                       totalHours: totalHours,
                       offDays: offDays,
                     ),
@@ -87,6 +94,10 @@ class StatsPage extends ConsumerWidget {
                       trend: trend,
                       trendMax: trendMax,
                       average: trendAvg,
+                      dayColor: shiftByKey('day', customs)?.solid ??
+                          Shift.day.solid,
+                      nightColor: shiftByKey('night', customs)?.solid ??
+                          Shift.night.solid,
                     ),
                   ],
                 ),
@@ -296,16 +307,25 @@ class _LegendGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shifts = allShifts(customs);
-    return GridView.count(
-      crossAxisCount: 3,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 2.6,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        for (final s in shifts) _LegendItem(shift: s, count: stats[s.key] ?? 0),
-      ],
+    const crossAxisCount = 3;
+    const spacing = 10.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth =
+            (constraints.maxWidth - spacing * (crossAxisCount - 1)) /
+                crossAxisCount;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final s in shifts)
+              SizedBox(
+                width: itemWidth,
+                child: _LegendItem(shift: s, count: stats[s.key] ?? 0),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -364,6 +384,8 @@ class _LegendItem extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 shift.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 11,
@@ -381,19 +403,15 @@ class _LegendItem extends StatelessWidget {
 
 class _MetricsRow extends StatelessWidget {
   const _MetricsRow({
-    required this.stats,
     required this.totalHours,
     required this.offDays,
   });
 
-  final Map<String, int> stats;
   final int totalHours;
   final int offDays;
 
   @override
   Widget build(BuildContext context) {
-    final dHours = (stats[Shift.day.key] ?? 0) * 12;
-    final nHours = (stats[Shift.night.key] ?? 0) * 12;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -403,7 +421,6 @@ class _MetricsRow extends StatelessWidget {
               label: '총 근무 시간',
               value: '$totalHours',
               unit: '시간',
-              sublabel: '주간 ${dHours}h · 야간 ${nHours}h',
               color: AppColors.blue,
             ),
           ),
@@ -427,14 +444,12 @@ class _MetricCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.unit,
-    this.sublabel,
     required this.color,
   });
 
   final String label;
   final String value;
   final String unit;
-  final String? sublabel;
   final Color color;
 
   @override
@@ -487,19 +502,6 @@ class _MetricCard extends StatelessWidget {
               style: const TextStyle(fontFamily: 'Pretendard'),
             ),
           ),
-          if (sublabel != null) ...[
-            const SizedBox(height: 6),
-            Text(
-              sublabel!,
-              style: const TextStyle(
-                fontFamily: 'Pretendard',
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.text5,
-                letterSpacing: -0.1,
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -511,11 +513,15 @@ class _TrendCard extends StatelessWidget {
     required this.trend,
     required this.trendMax,
     required this.average,
+    required this.dayColor,
+    required this.nightColor,
   });
 
   final List<_TrendItem> trend;
   final int trendMax;
   final int average;
+  final Color dayColor;
+  final Color nightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -567,7 +573,12 @@ class _TrendCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 for (var i = 0; i < trend.length; i++) ...[
-                  Expanded(child: _TrendBar(item: trend[i], trendMax: trendMax)),
+                  Expanded(
+                      child: _TrendBar(
+                          item: trend[i],
+                          trendMax: trendMax,
+                          dayColor: dayColor,
+                          nightColor: nightColor)),
                   if (i != trend.length - 1) const SizedBox(width: 10),
                 ],
               ],
@@ -580,9 +591,16 @@ class _TrendCard extends StatelessWidget {
 }
 
 class _TrendBar extends StatelessWidget {
-  const _TrendBar({required this.item, required this.trendMax});
+  const _TrendBar({
+    required this.item,
+    required this.trendMax,
+    required this.dayColor,
+    required this.nightColor,
+  });
   final _TrendItem item;
   final int trendMax;
+  final Color dayColor;
+  final Color nightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -617,11 +635,11 @@ class _TrendBar extends StatelessWidget {
             children: [
               Container(
                 height: 100 * nRatio,
-                color: Shift.night.solid.withValues(alpha: opacity),
+                color: nightColor.withValues(alpha: opacity),
               ),
               Container(
                 height: 100 * dRatio,
-                color: Shift.day.solid.withValues(alpha: opacity),
+                color: dayColor.withValues(alpha: opacity),
               ),
             ],
           ),
