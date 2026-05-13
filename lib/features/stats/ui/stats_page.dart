@@ -40,6 +40,8 @@ class StatsPage extends ConsumerWidget {
     }
     final totalHours = totalMinutes ~/ 60;
 
+    // 추이는 isOff:false 인 모든 근무를 색상별로 스택. 색상은 customs 순.
+    final workShifts = customs.where((c) => !c.isOff).toList();
     final trend = <_TrendItem>[];
     for (var i = -5; i <= 0; i++) {
       final d = DateTime(focused.year, focused.month + i, 1);
@@ -50,13 +52,18 @@ class StatsPage extends ConsumerWidget {
         anchorDate: state.anchorDate,
         overrides: state.overrides,
       );
-      final dCount = ms[Shift.day.key] ?? 0;
-      final nCount = ms[Shift.night.key] ?? 0;
+      final segments = <_TrendSegment>[];
+      var total = 0;
+      for (final c in workShifts) {
+        final cnt = ms[c.id] ?? 0;
+        if (cnt <= 0) continue;
+        segments.add(_TrendSegment(color: Color(c.colorHex), count: cnt));
+        total += cnt;
+      }
       trend.add(_TrendItem(
         label: '${d.month}월',
-        day: dCount,
-        night: nCount,
-        total: dCount + nCount,
+        segments: segments,
+        total: total,
         isCurrent: i == 0,
       ));
     }
@@ -94,10 +101,6 @@ class StatsPage extends ConsumerWidget {
                       trend: trend,
                       trendMax: trendMax,
                       average: trendAvg,
-                      dayColor: shiftByKey('day', customs)?.solid ??
-                          Shift.day.solid,
-                      nightColor: shiftByKey('night', customs)?.solid ??
-                          Shift.night.solid,
                     ),
                   ],
                 ),
@@ -110,17 +113,22 @@ class StatsPage extends ConsumerWidget {
   }
 }
 
+class _TrendSegment {
+  const _TrendSegment({required this.color, required this.count});
+
+  final Color color;
+  final int count;
+}
+
 class _TrendItem {
   const _TrendItem({
     required this.label,
-    required this.day,
-    required this.night,
+    required this.segments,
     required this.total,
     required this.isCurrent,
   });
   final String label;
-  final int day;
-  final int night;
+  final List<_TrendSegment> segments;
   final int total;
   final bool isCurrent;
 }
@@ -513,15 +521,11 @@ class _TrendCard extends StatelessWidget {
     required this.trend,
     required this.trendMax,
     required this.average,
-    required this.dayColor,
-    required this.nightColor,
   });
 
   final List<_TrendItem> trend;
   final int trendMax;
   final int average;
-  final Color dayColor;
-  final Color nightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -574,11 +578,8 @@ class _TrendCard extends StatelessWidget {
               children: [
                 for (var i = 0; i < trend.length; i++) ...[
                   Expanded(
-                      child: _TrendBar(
-                          item: trend[i],
-                          trendMax: trendMax,
-                          dayColor: dayColor,
-                          nightColor: nightColor)),
+                      child:
+                      _TrendBar(item: trend[i], trendMax: trendMax)),
                   if (i != trend.length - 1) const SizedBox(width: 10),
                 ],
               ],
@@ -594,20 +595,13 @@ class _TrendBar extends StatelessWidget {
   const _TrendBar({
     required this.item,
     required this.trendMax,
-    required this.dayColor,
-    required this.nightColor,
   });
   final _TrendItem item;
   final int trendMax;
-  final Color dayColor;
-  final Color nightColor;
 
   @override
   Widget build(BuildContext context) {
     final opacity = item.isCurrent ? 1.0 : 0.6;
-    final dRatio = item.day / trendMax;
-    final nRatio = item.night / trendMax;
-
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -633,14 +627,11 @@ class _TrendBar extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Container(
-                height: 100 * nRatio,
-                color: nightColor.withValues(alpha: opacity),
-              ),
-              Container(
-                height: 100 * dRatio,
-                color: dayColor.withValues(alpha: opacity),
-              ),
+              for (final seg in item.segments)
+                Container(
+                  height: 100 * (seg.count / trendMax),
+                  color: seg.color.withValues(alpha: opacity),
+                ),
             ],
           ),
         ),

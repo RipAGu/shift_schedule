@@ -13,7 +13,6 @@ import '../view_model/calendar_view_model.dart';
 import 'calendar_cell.dart';
 import 'date_detail_sheet.dart';
 import 'month_header.dart';
-import 'stats_strip.dart';
 
 class CalendarPage extends ConsumerWidget {
   const CalendarPage({super.key});
@@ -24,13 +23,6 @@ class CalendarPage extends ConsumerWidget {
     final vm = ref.read(calendarViewModelProvider.notifier);
     final customs = ref.watch(shiftTypesViewModelProvider);
     final today = DateTime.now();
-    final stats = monthStatsByKey(
-      year: state.focusedMonth.year,
-      month: state.focusedMonth.month,
-      cycle: state.cycle,
-      anchorDate: state.anchorDate,
-      overrides: state.overrides,
-    );
 
     final year = state.focusedMonth.year;
     final holidays = <String, String>{
@@ -113,7 +105,8 @@ class CalendarPage extends ConsumerWidget {
               },
             ),
           ),
-          StatsStrip(stats: stats, customs: customs),
+          // 하단 floating 탭바 영역만큼 공간 확보 (이전엔 StatsStrip 이 차지).
+          const SizedBox(height: 78),
         ],
       ),
     );
