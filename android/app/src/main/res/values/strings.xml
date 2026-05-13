@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">마이근무</string>
+    <string name="widget_description">이번 달 근무 일정을 한눈에 봐요</string>
+    <string name="widget_content_desc">마이근무 캘린더 위젯</string>
+</resources>
