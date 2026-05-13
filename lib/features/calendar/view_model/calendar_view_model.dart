@@ -33,7 +33,10 @@ class CalendarViewModel extends _$CalendarViewModel {
 
   void goToCurrentMonth() {
     final now = DateTime.now();
-    state = state.copyWith(focusedMonth: DateTime(now.year, now.month));
+    state = state.copyWith(
+      focusedMonth: DateTime(now.year, now.month),
+      selectedDay: DateTime(now.year, now.month, now.day),
+    );
   }
 
   void selectDay(DateTime day) {

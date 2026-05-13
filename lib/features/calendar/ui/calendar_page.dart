@@ -94,7 +94,13 @@ class CalendarPage extends ConsumerWidget {
                       outsideBuilder: (ctx, day, _) =>
                           _buildCell(state, holidays, day, isOutside: true),
                       selectedBuilder: (ctx, day, _) =>
-                          _buildCell(state, holidays, day, isSelected: true),
+                          _buildCell(
+                            state,
+                            holidays,
+                            day,
+                            isSelected: true,
+                            isToday: isSameDay(day, today),
+                          ),
                     ),
                   ),
                 );

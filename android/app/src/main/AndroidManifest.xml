@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 공공데이터포털 공휴일 API 호출용 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="sample"
         android:name="${applicationName}"

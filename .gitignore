@@ -48,3 +48,4 @@ app.*.map.json
 .env.json
 .env*.json
 !.env.example.json
+/CLAUDE.md
