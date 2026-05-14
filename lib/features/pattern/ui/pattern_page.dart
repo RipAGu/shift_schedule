@@ -46,6 +46,10 @@ class _PatternPageState extends ConsumerState<PatternPage> {
     setState(() => _draft.removeAt(i));
   }
 
+  void _revert() {
+    setState(() => _draft = List<String>.from(_saved));
+  }
+
   Future<void> _addPhase() async {
     final picked = await showPhasePicker(context);
     if (!mounted || picked == null) return;
@@ -125,6 +129,7 @@ class _PatternPageState extends ConsumerState<PatternPage> {
             _BottomAction(
               enabled: _isDirty,
               onTap: _apply,
+              onRevert: _revert,
             ),
           ],
         ),
@@ -549,10 +554,15 @@ class _RangeRow extends StatelessWidget {
 }
 
 class _BottomAction extends StatelessWidget {
-  const _BottomAction({required this.enabled, required this.onTap});
+  const _BottomAction({
+    required this.enabled,
+    required this.onTap,
+    required this.onRevert,
+  });
 
   final bool enabled;
   final VoidCallback onTap;
+  final VoidCallback onRevert;
 
   @override
   Widget build(BuildContext context) {
@@ -574,27 +584,58 @@ class _BottomAction extends StatelessWidget {
         ),
       ),
       child: SizedBox(
-        width: double.infinity,
         height: 54,
-        child: ElevatedButton(
-          onPressed: enabled ? onTap : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.blue,
-            disabledBackgroundColor: AppColors.line,
-            foregroundColor: Colors.white,
-            disabledForegroundColor: AppColors.textDisabled,
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          child: const Text(
-            '이 패턴으로 적용',
-            style: TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
+        child: Row(
+          children: [
+            // 마지막 저장 시점으로 되돌리기 — dirty 상태에서만 노출.
+            if (enabled) ...[
+              SizedBox(
+                width: 54,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: onRevert,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.card,
+                    foregroundColor: AppColors.text3,
+                    elevation: 0,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: const BorderSide(color: AppColors.line),
+                    ),
+                  ),
+                  child: const Icon(Icons.undo, size: 22),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: SizedBox(
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: enabled ? onTap : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.blue,
+                    disabledBackgroundColor: AppColors.line,
+                    foregroundColor: Colors.white,
+                    disabledForegroundColor: AppColors.textDisabled,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text(
+                    '이 패턴으로 적용',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
