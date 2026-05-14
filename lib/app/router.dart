@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -95,6 +96,16 @@ class _RootGateState extends ConsumerState<_RootGate> {
       );
     }
 
-    return completed ? const HomeShell() : const OnboardingScreen();
+    // 루트에서 뒤로가기 = 앱 종료. 기본 Android 동작 (moveTaskToBack) 대신
+    // SystemNavigator.pop() 으로 활동 finish → 앱 닫힘. 시트/다이얼로그가 떠
+    // 있을 땐 Navigator 가 먼저 처리하므로 PopScope 까지 안 옴.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        SystemNavigator.pop();
+      },
+      child: completed ? const HomeShell() : const OnboardingScreen(),
+    );
   }
 }

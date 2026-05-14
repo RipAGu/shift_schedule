@@ -16,6 +16,7 @@ class CalendarViewModel extends _$CalendarViewModel {
     final now = DateTime.now();
     return CalendarState(
       focusedMonth: DateTime(now.year, now.month),
+      selectedDay: DateTime(now.year, now.month, now.day),
       cycle: repo.getCycle(),
       anchorDate: repo.getAnchorDate(),
       notes: repo.getAllNotes(),
