@@ -26,6 +26,7 @@ class WidgetSyncService {
   Future<void> sync(
     CalendarState state, {
     required List<CustomShift> customs,
+    required Set<String> holidays,
   }) async {
     try {
       await _ensureInitialized();
@@ -51,6 +52,8 @@ class WidgetSyncService {
         'cycle': state.cycle,
         'overrides': state.overrides,
         'shifts': shifts,
+        // 공휴일 날짜 키 ("yyyy-MM-dd") 목록 — 위젯은 이름은 안 쓰고 날짜만 빨갛게.
+        'holidays': holidays.toList(),
       };
 
       final json = jsonEncode(payload);
@@ -63,7 +66,8 @@ class WidgetSyncService {
       dev.log(
         'Synced widget — cycle:${state.cycle.length}, '
         'overrides:${state.overrides.length}, '
-        'shifts:${shifts.length}',
+        'shifts:${shifts.length}, '
+        'holidays:${holidays.length}',
         name: 'widget',
       );
     } catch (e) {

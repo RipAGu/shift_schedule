@@ -21,6 +21,7 @@ struct WidgetPayload: Codable {
     let cycle: [String]                 // ["day", "day", "night", ...]
     let overrides: [String: String]     // { "YYYY-MM-DD": "night" }
     let shifts: [String: ShiftDef]?     // optional — Flutter 가 매번 같이 전송
+    let holidays: [String]?             // 공휴일 날짜 키 — 위젯은 빨갛게 표시만
 }
 
 // MARK: - Shift visuals
@@ -225,10 +226,14 @@ private struct CellView: View {
         let dayNum = cal.component(.day, from: day)
         let weekday = cal.component(.weekday, from: day) - 1
         let shift = shiftCode.flatMap { resolveShift($0, payload: payload) }
+        let isHoliday = payload?.holidays?.contains(dateKey(day)) ?? false
 
         let dayColor: Color = {
             if isToday { return .white }
-            if !inMonth { return textTertiary.opacity(0.5) }
+            if !inMonth {
+                return (isHoliday ? redWeekend : textTertiary).opacity(0.5)
+            }
+            if isHoliday { return redWeekend }
             if weekday == 0 { return redWeekend }
             if weekday == 6 { return blueWeekend }
             return textPrimary

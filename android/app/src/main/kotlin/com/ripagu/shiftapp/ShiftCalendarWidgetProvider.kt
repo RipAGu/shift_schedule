@@ -95,6 +95,7 @@ private data class WidgetPayload(
     val cycle: List<String>,
     val overrides: Map<String, String>,
     val shifts: Map<String, ShiftDef>,
+    val holidays: Set<String>,
 ) {
     companion object {
         fun fromJson(j: JSONObject): WidgetPayload {
@@ -127,7 +128,14 @@ private data class WidgetPayload(
                     )
                 }
             }
-            return WidgetPayload(anchor, cycle, overrides, shifts)
+            val holidaysJson = j.optJSONArray("holidays")
+            val holidays = mutableSetOf<String>()
+            if (holidaysJson != null) {
+                for (i in 0 until holidaysJson.length()) {
+                    holidays.add(holidaysJson.optString(i, ""))
+                }
+            }
+            return WidgetPayload(anchor, cycle, overrides, shifts, holidays)
         }
     }
 }
@@ -309,9 +317,15 @@ private fun drawWidgetBitmap(payload: WidgetPayload?): Bitmap {
             val cellY = gridTop + rowH * row
 
             val weekday = cell.get(Calendar.DAY_OF_WEEK) - 1
+            val isHoliday = payload?.holidays?.contains(toDateKey(cell)) == true
             val dayColor = when {
                 isToday -> 0xFFFFFFFF.toInt()
-                !inMonth -> argbWithAlpha(COLOR_TEXT_TERTIARY, 0.5f)
+                !inMonth -> argbWithAlpha(
+                    if (isHoliday) COLOR_RED_WEEKEND else COLOR_TEXT_TERTIARY,
+                    0.5f,
+                )
+
+                isHoliday -> COLOR_RED_WEEKEND
                 weekday == 0 -> COLOR_RED_WEEKEND
                 weekday == 6 -> COLOR_BLUE_WEEKEND
                 else -> COLOR_TEXT_PRIMARY

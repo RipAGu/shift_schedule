@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../core/shift.dart';
 import '../features/calendar/view_model/calendar_state.dart';
 import '../features/calendar/view_model/calendar_view_model.dart';
+import '../features/holidays/data/holiday_repository.dart';
 import '../features/onboarding/ui/onboarding_screen.dart';
 import '../features/onboarding/view_model/onboarding_controller.dart';
 import '../features/shift_types/view_model/shift_types_view_model.dart';
@@ -40,10 +41,34 @@ class _RootGateState extends ConsumerState<_RootGate> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final state = ref.read(calendarViewModelProvider);
-      final customs = ref.read(shiftTypesViewModelProvider);
-      widgetSyncService.sync(state, customs: customs);
+      _syncWidget();
     });
+  }
+
+  // 위젯이 표시할 수 있는 모든 날짜의 공휴일 — 캘린더 페이지가 watch 하는
+  // 3개년 (현재 ±1) 과 동일한 범위로 외부달 셀까지 커버.
+  Set<String> _collectHolidays() {
+    final year = DateTime
+        .now()
+        .year;
+    final keys = <String>{};
+    for (final y in [year - 1, year, year + 1]) {
+      final map = ref
+          .read(yearHolidaysProvider(y))
+          .value;
+      if (map != null) keys.addAll(map.keys);
+    }
+    return keys;
+  }
+
+  void _syncWidget() {
+    final state = ref.read(calendarViewModelProvider);
+    final customs = ref.read(shiftTypesViewModelProvider);
+    widgetSyncService.sync(
+      state,
+      customs: customs,
+      holidays: _collectHolidays(),
+    );
   }
 
   @override
@@ -52,18 +77,23 @@ class _RootGateState extends ConsumerState<_RootGate> {
 
     ref.listen<CalendarState>(
       calendarViewModelProvider,
-          (prev, next) {
-        final customs = ref.read(shiftTypesViewModelProvider);
-        widgetSyncService.sync(next, customs: customs);
-      },
+          (_, _) => _syncWidget(),
     );
     ref.listen<List<CustomShift>>(
       shiftTypesViewModelProvider,
-          (prev, next) {
-        final state = ref.read(calendarViewModelProvider);
-        widgetSyncService.sync(state, customs: next);
-      },
+          (_, _) => _syncWidget(),
     );
+    // 공휴일 캐시가 fetch 완료되면 (특히 첫 실행 시 빈 캐시 → 네트워크 응답)
+    // 위젯에 즉시 반영되도록 3개년 모두 listen.
+    final year = DateTime
+        .now()
+        .year;
+    for (final y in [year - 1, year, year + 1]) {
+      ref.listen<AsyncValue<Map<String, String>>>(
+        yearHolidaysProvider(y),
+            (_, _) => _syncWidget(),
+      );
+    }
 
     return completed ? const HomeShell() : const OnboardingScreen();
   }
