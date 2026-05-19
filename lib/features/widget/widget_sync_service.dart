@@ -7,7 +7,7 @@ import '../../core/date_key.dart';
 import '../../core/shift.dart';
 import '../calendar/view_model/calendar_state.dart';
 
-const String kHomeWidgetAppGroup = 'group.com.ripagu.shiftapp';
+const String kHomeWidgetAppGroup = 'group.com.yhsong.shiftapp';
 const String kHomeWidgetiOSName = 'ShiftCalendarWidget';
 const String kHomeWidgetAndroidName = 'ShiftCalendarWidgetProvider';
 const String _kPayloadKey = 'payload';

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -96,7 +96,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9666A08A2FB357AF00AAE0D7 /* Exceptions for "ShiftCalendarWidget" folder in "ShiftCalendarWidgetExtension" target */ = {
+		9666A08A2FB357AF00AAE0D7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -106,18 +106,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9666A0792FB357AE00AAE0D7 /* ShiftCalendarWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9666A08A2FB357AF00AAE0D7 /* Exceptions for "ShiftCalendarWidget" folder in "ShiftCalendarWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = ShiftCalendarWidget;
-			sourceTree = "<group>";
-		};
+		9666A0792FB357AE00AAE0D7 /* ShiftCalendarWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9666A08A2FB357AF00AAE0D7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ShiftCalendarWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -456,9 +445,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -588,7 +581,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = 2VDWYU2NQL;
+				DEVELOPMENT_TEAM = DHK64S6YX8;
 				ENABLE_APP_INTENTS_METADATA_EXTRACTION = NO;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -596,7 +589,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ripagu.shiftapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yhsong.shiftapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -668,7 +661,7 @@
 				CODE_SIGN_ENTITLEMENTS = ShiftCalendarWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2VDWYU2NQL;
+				DEVELOPMENT_TEAM = DHK64S6YX8;
 				ENABLE_APP_INTENTS_METADATA_EXTRACTION = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -686,7 +679,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ripagu.shiftapp.ShiftCalendarWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yhsong.shiftapp.ShiftCalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -714,7 +707,7 @@
 				CODE_SIGN_ENTITLEMENTS = ShiftCalendarWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2VDWYU2NQL;
+				DEVELOPMENT_TEAM = DHK64S6YX8;
 				ENABLE_APP_INTENTS_METADATA_EXTRACTION = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -731,7 +724,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ripagu.shiftapp.ShiftCalendarWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yhsong.shiftapp.ShiftCalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -757,7 +750,7 @@
 				CODE_SIGN_ENTITLEMENTS = ShiftCalendarWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2VDWYU2NQL;
+				DEVELOPMENT_TEAM = DHK64S6YX8;
 				ENABLE_APP_INTENTS_METADATA_EXTRACTION = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -774,7 +767,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ripagu.shiftapp.ShiftCalendarWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yhsong.shiftapp.ShiftCalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -905,7 +898,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = 2VDWYU2NQL;
+				DEVELOPMENT_TEAM = DHK64S6YX8;
 				ENABLE_APP_INTENTS_METADATA_EXTRACTION = NO;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -913,7 +906,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ripagu.shiftapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yhsong.shiftapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -930,7 +923,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
-				DEVELOPMENT_TEAM = 2VDWYU2NQL;
+				DEVELOPMENT_TEAM = DHK64S6YX8;
 				ENABLE_APP_INTENTS_METADATA_EXTRACTION = NO;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -938,7 +931,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.ripagu.shiftapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yhsong.shiftapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

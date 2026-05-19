@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Constants
 
-private let appGroup = "group.com.ripagu.shiftapp"
+private let appGroup = "group.com.yhsong.shiftapp"
 private let payloadKey = "payload"
 
 // MARK: - Payload model
