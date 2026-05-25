@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 공공데이터포털 공휴일 API 호출용 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 위젯 자정 자동 갱신 알람을 재부팅 후에도 재등록하기 위해 필요 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:label="마이근무"
@@ -42,6 +44,11 @@
             android:label="@string/widget_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- 사용자가 시간/시간대 수동 변경시 즉시 갱신. -->
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <!-- 재부팅 후 자정 알람 재등록을 위해 (알람은 reboot 시 사라짐). -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

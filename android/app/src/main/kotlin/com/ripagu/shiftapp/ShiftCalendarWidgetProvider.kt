@@ -1,8 +1,10 @@
 package com.ripagu.shiftapp
 
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -20,6 +22,8 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.max
 
+private const val MIDNIGHT_ALARM_REQUEST_CODE = 1001
+
 class ShiftCalendarWidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(
@@ -30,6 +34,18 @@ class ShiftCalendarWidgetProvider : AppWidgetProvider() {
         for (id in appWidgetIds) {
             renderWidget(context, appWidgetManager, id)
         }
+        // iOS WidgetKit 의 TimelineReloadPolicy.after(nextMidnight) 와 동일한 효과.
+        scheduleNextMidnightUpdate(context)
+    }
+
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        scheduleNextMidnightUpdate(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        super.onDisabled(context)
+        cancelMidnightUpdate(context)
     }
 
     private fun renderWidget(
@@ -74,7 +90,66 @@ class ShiftCalendarWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
         // home_widget.updateWidget() 호출 시 ACTION_APPWIDGET_UPDATE 가
         // 명시적 컴포넌트로 전달되므로 onUpdate 가 자연 호출됨.
-        // 추가 처리 불필요.
+        when (intent.action) {
+            // 사용자가 시간/시간대를 수동 변경, 또는 재부팅 직후 → 즉시 재렌더 + 알람 재등록.
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_BOOT_COMPLETED -> {
+                val mgr = AppWidgetManager.getInstance(context)
+                val ids = mgr.getAppWidgetIds(
+                    ComponentName(context, ShiftCalendarWidgetProvider::class.java),
+                )
+                for (id in ids) {
+                    renderWidget(context, mgr, id)
+                }
+                scheduleNextMidnightUpdate(context)
+            }
+        }
+    }
+
+    // ─── 자정 자동 갱신 ────────────────────────────────────────────────
+    // AlarmManager 로 다음 자정에 APPWIDGET_UPDATE 브로드캐스트 → onUpdate 재호출.
+    // setExact 가 아닌 set() 사용 (정확한 자정일 필요 없고, SCHEDULE_EXACT_ALARM
+    // 권한 회피). Doze 모드 등으로 수 분 지연될 수 있으나 캘린더 용도엔 충분.
+
+    private fun scheduleNextMidnightUpdate(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+            ?: return
+        val nextMidnight = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        alarmManager.set(
+            AlarmManager.RTC,
+            nextMidnight.timeInMillis,
+            midnightPendingIntent(context),
+        )
+    }
+
+    private fun cancelMidnightUpdate(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+            ?: return
+        alarmManager.cancel(midnightPendingIntent(context))
+    }
+
+    private fun midnightPendingIntent(context: Context): PendingIntent {
+        val mgr = AppWidgetManager.getInstance(context)
+        val ids = mgr.getAppWidgetIds(
+            ComponentName(context, ShiftCalendarWidgetProvider::class.java),
+        )
+        val intent = Intent(context, ShiftCalendarWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            MIDNIGHT_ALARM_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
     }
 }
 
